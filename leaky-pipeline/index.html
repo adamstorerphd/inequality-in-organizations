@@ -454,19 +454,25 @@ var DATA = {
   in: {
     label: "India",
     title: "India: from the campus to the corner office",
-    sub: "Women’s share of degrees awarded in 2021–22, of the labour force in 2025, and of staff at each level in formal-sector companies surveyed by McKinsey in 2024–25.",
+    sub: "Women’s share of degrees awarded in 2021–22, of the labour force in 2025, and of staff at each level in 77 private-sector companies surveyed by McKinsey in 2024.",
     hasSplit: false,
     stages: [
       {name:"Degrees awarded", sub:"All higher education", tag:"AISHE, 2021–22", w:50.8, src:"AISHE 2021–22",
        note:"5.46 million of the 10.7 million students who graduated in 2021–22 were women, 50.8% (AISHE). Women are 55.4% of postgraduate students and 46.5% of PhD students."},
       {name:"Labour force", sub:"Age 15 and over", tag:"All of India", w:32.5, src:"PLFS 2025", leak:[["home","Home-making"],["field","Degree field"]],
        note:"200 million women and 416 million men were in the labour force in 2025, so women are 32.5% of it (PLFS). 40.0% of women aged 15 and over take part, against 79.1% of men."},
-      {name:"Entry level", tag:"Formal-sector firms", w:33, src:"McKinsey 2025",
-       note:"33% of entry-level workers in the surveyed organizations are women (McKinsey, Women in the Workplace 2025: India, Nigeria and Kenya; 324 organizations across the three countries). Women at this level average 39 years old; men 32."},
+      {name:"Entry level", tag:"77 private firms", w:33, src:"McKinsey 2025",
+       note:"33% of entry-level workers in 77 Indian private-sector organizations are women (McKinsey, Women in the Workplace 2025: India, Nigeria and Kenya, exhibit 3, 2023 data). Women at this level average 39 years old; men 32."},
       {name:"Manager", w:24, src:"McKinsey 2025", leak:[["rung","First promotion"]],
-       note:"24% of managers are women. Beyond manager the report says the decline slows to about two points per level."},
-      {name:"C-suite", w:17, src:"McKinsey 2025 (press)",
-       note:"17% of C-suite positions are held by women. This figure is read from the report’s chart as reported in the press; the report page itself states the entry-level and manager figures."}
+       note:"24% of managers are women. Each year 9.4% of entry-level men are promoted to manager against 4.0% of entry-level women, and entry-level women are 1.3 times as likely as men to leave."},
+      {name:"Senior manager", sub:"or director", w:22, src:"McKinsey 2025",
+       note:"22% of senior managers and directors are women. From manager upwards, men and women are promoted at similar rates (6.4% against 5.6% from manager; 4.0% against 4.2% from senior manager)."},
+      {name:"Vice president", w:20, src:"McKinsey 2025",
+       note:"20% of vice presidents are women. Attrition rates for men and women converge between manager and VP level."},
+      {name:"Senior VP", w:18, src:"McKinsey 2025",
+       note:"18% of senior vice presidents are women. At this level women’s promotion rate edges ahead of men’s, and more men than women leave each year."},
+      {name:"C-suite", w:17, src:"McKinsey 2025",
+       note:"17% of C-suite positions are held by women. Boards do better, at 20% in the same companies, which the report attributes to the one-woman-director rule of the Companies Act 2013 and SEBI."}
     ],
     causes: [
       {id:"home", where:"Degree → labour force", title:"Home-making",
@@ -478,9 +484,9 @@ var DATA = {
        rows:[["All degrees awarded",50.8,null,1],["Postgraduate enrolment",55.4],["Management (MBA level)",41.9],["Engineering & technology",29.1]], max:70, unit:"%",
        cap:"Women’s share of graduates and of enrolment by field, 2021–22. AISHE."},
       {id:"rung", where:"Entry level → manager", title:"The first promotion",
-       html:"<p>Inside companies the steepest step is the first one: <b>from 33% of entry-level workers to 24% of managers</b>. After that the decline slows to about two points a level. McKinsey also finds a seven-year age gap at entry level: women average 39, men 32, so women start later or stay stuck longer.</p>",
-       rows:[["Entry level",33],["Manager",24],["C-suite",17]], max:50, unit:"%",
-       cap:"Women’s share by level, India, 2024–25 data. McKinsey, Women in the Workplace 2025: India, Nigeria and Kenya. C-suite figure as reported by the press from the report’s chart."}
+       html:"<p>Inside companies the steepest step is the first one: <b>from 33% of entry-level workers to 24% of managers</b>. An entry-level man is 2.4 times as likely as an entry-level woman to be promoted to manager in a given year, and women are 1.3 times as likely to leave. After that step the two sexes are promoted at similar rates and the decline slows to about two points a level.</p><p>McKinsey also finds a seven-year age gap at entry level: women average 39, men 32, so women start later or stay stuck longer.</p>",
+       rows:[["Men promoted to manager each year",9.4,null,1],["Women promoted to manager each year",4.0],["Men promoted from manager",6.4,null,1],["Women promoted from manager",5.6]], max:12, unit:"%",
+       cap:"Annual promotion rate by level and sex, 77 Indian private-sector organizations, 2023. McKinsey, Women in the Workplace 2025: India, Nigeria and Kenya, exhibits 4 and 6."}
     ],
     extras:
       '<article class="finding"><h3>Half the graduates, a third of the workers</h3>' +
@@ -488,12 +494,12 @@ var DATA = {
       bars([["Rural men",80.2,null,1],["Rural women",47.6],["Urban men",75.6,null,1],["Urban women",28.0]], 100, "%") +
       '<p class="cap-t">Labour force participation rate, age 15+, July 2023 to June 2024. PLFS.</p></article>' +
       '<article class="finding"><h3>Boards by law</h3>' +
-      '<p>Since 2015 every listed company in India must have at least one woman director, and the largest ones at least one independent woman director. <b>Women held 18.3% of board seats in 2023</b>, up from 13.8% in 2018 (Deloitte). The law asks for one seat, not a share, and the number has settled a little above what one seat per board implies.</p></article>',
-    caveat: "The degree section counts everyone who graduated in 2021–22. The labour force section is the whole country aged 15 and over, most of whom have no degree. The last three come from a McKinsey survey of formal-sector employers, and the C-suite figure is taken from press coverage of its chart.",
+      '<p>Since 2015 every listed company in India must have at least one woman director, and the largest ones at least one independent woman director. <b>Women held 18.3% of board seats in 2023</b>, up from 13.8% in 2018 (Deloitte), and 20% in the 77 companies McKinsey surveyed, more than in their C-suites (17%). The law asks for one seat, not a share, and the number has settled a little above what one seat per board implies.</p></article>',
+    caveat: "The degree section counts everyone who graduated in 2021–22. The labour force section is the whole country aged 15 and over, most of whom have no degree. The six company levels come from McKinsey’s survey of 77 Indian private-sector organizations, with 2023 data.",
     sources:
       '<li><a href="https://education.gov.in/sites/upload_files/mhrd/files/statistics-new/AISHE%20Book_2021-22_4.pdf">All India Survey on Higher Education 2021–22</a>, Ministry of Education: pass-outs by sex, enrolment by level and discipline.</li>' +
       '<li><a href="https://www.mospi.gov.in/uploads/latestReleases/latest_release_1774607827733_3e8964a9-268b-4cc9-ad65-cfc8a9e32f08_Press_note_AR_PLFS_2025_23032025_V2.1_26032026_final.pdf">Periodic Labour Force Survey, annual report 2025</a> (MoSPI press note, March 2026): participation rates, labour force counts (women’s share computed from them) and reasons for being outside the labour force. <a href="https://mospi.gov.in/sites/default/files/press_release/Press_note_AR_PLFS_2023_24_22092024.pdf">PLFS 2023–24</a> for the rural and urban rates. <a href="https://mospi.gov.in/sites/default/files/press_release/PR_TUS_25022025.pdf">Time Use Survey 2024</a> press release for unpaid work.</li>' +
-      '<li><a href="https://www.mckinsey.com/industries/social-sector/our-insights/women-in-the-workplace-2025-india-nigeria-and-kenya">McKinsey, <i>Women in the Workplace 2025: India, Nigeria, and Kenya</i></a> (May 2025): entry level 33%, manager 24%, the age gap and the pace of decline above manager. The 17% C-suite figure is from <a href="https://www.hercircle.in/en/engage/career/career/indias-gender-gap-in-the-workplace-begins-early-and-deepens-at-the-first-promotion-says-mckinsey-9257.html">press coverage</a> of the report’s chart.</li>' +
+      '<li><a href="https://www.mckinsey.com/industries/social-sector/our-insights/women-in-the-workplace-2025-india-nigeria-and-kenya">McKinsey, <i>Women in the Workplace 2025: India, Nigeria, and Kenya</i></a> (May 2025), full report: exhibit 3 (women’s share by level in 77 Indian private-sector organizations, 2023: entry 33%, manager 24%, senior manager or director 22%, VP 20%, SVP 18%, C-suite 17%, board 20%), exhibits 4, 6 and 7 (promotion and attrition rates), and the age gap at entry level. Survey conducted March to June 2024.</li>' +
       '<li><a href="https://www.deloitte.com/in/en/issues/trust/women-in-the-boardroom-a-global-perspective.html">Deloitte, <i>Women in the boardroom</i>, 8th edition</a>: 18.3% of board seats in India, 2023.</li>'
   },
   cn: {
