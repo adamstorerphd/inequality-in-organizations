@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Leaky Pipeline</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: a plant-room wall. One glass pipe with bolted steel flanges runs across it;
+   water level in each section = women's share. Leaks at the joints fall into labelled
+   buckets on the floor. Findings sit below in plain columns. */
+:root{
+  --paper:#eef1f4; --panel:#f8fafb; --ink:#14202b; --ink-2:#47586a; --ink-3:#6b7b8a;
+  --rule:#c9d2da; --grid:rgba(20,32,43,.05);
+  --wall:#3a4753; --wall-hi:#8d9aa6; --wall-lo:#1c262f;
+  --brass:#a8843a; --brass-hi:#d8b869; --brass-lo:#6e5420;
+  --men:#dbe2e8; --hatch:#c6d0d9;
+  --women:#2a78d6; --water-top:#6aa5ea; --woc:#eb6834;
+  --valve:#c8402f; --bubble:rgba(255,255,255,.85);
+  --shine:rgba(255,255,255,.5); --shade:rgba(15,28,40,.13); --rust:rgba(150,84,40,.42);
+  --bucket:#c3ccd4; --floor:#aeb9c3; --men-dot:#9fabb6; --moc:#586a7b;
+  --display:'Big Shoulders Display','Arial Narrow','Helvetica Neue',sans-serif;
+  --body:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,'SF Mono',Menlo,monospace;
+  --pipe-h:220px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0f1a24; --panel:#15222e; --ink:#e9eff4; --ink-2:#aebccb; --ink-3:#8497a8;
+    --rule:#2b3b4a; --grid:rgba(233,239,244,.045);
+    --wall:#8496a5; --wall-hi:#c9d5df; --wall-lo:#4a5967;
+    --brass:#b9954a; --brass-hi:#e3c67e; --brass-lo:#7a6026;
+    --men:#243443; --hatch:#1c2a37;
+    --women:#3987e5; --water-top:#74adf0; --woc:#d95926;
+    --valve:#e2604d; --bubble:rgba(255,255,255,.8);
+    --shine:rgba(255,255,255,.17); --shade:rgba(0,0,0,.3); --rust:rgba(196,116,62,.4);
+    --bucket:#34444f; --floor:#3c4d5b; --men-dot:#56697b; --moc:#a9b8c5;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0f1a24; --panel:#15222e; --ink:#e9eff4; --ink-2:#aebccb; --ink-3:#8497a8;
+  --rule:#2b3b4a; --grid:rgba(233,239,244,.045);
+  --wall:#8496a5; --wall-hi:#c9d5df; --wall-lo:#4a5967;
+  --brass:#b9954a; --brass-hi:#e3c67e; --brass-lo:#7a6026;
+  --men:#243443; --hatch:#1c2a37;
+  --women:#3987e5; --water-top:#74adf0; --woc:#d95926;
+  --valve:#e2604d; --bubble:rgba(255,255,255,.8);
+  --shine:rgba(255,255,255,.17); --shade:rgba(0,0,0,.3); --rust:rgba(196,116,62,.4);
+  --bucket:#34444f; --floor:#3c4d5b; --men-dot:#56697b; --moc:#a9b8c5;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:15.5px;line-height:1.55}
+.page{max-width:1240px;margin:0 auto;padding-inline:clamp(16px,3.4vw,40px);padding-block:28px 64px;display:flex;flex-direction:column;gap:28px}
+h1,h2,h3,p{margin:0}
+a{color:inherit;text-underline-offset:3px}
+:focus-visible{outline:2px solid var(--women);outline-offset:2px}
+
+/* masthead */
+.masthead{display:flex;flex-wrap:wrap;gap:20px 40px;align-items:flex-end;justify-content:space-between}
+.masthead > div{min-width:0}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(46px,7.4vw,88px);line-height:.92;letter-spacing:.005em;text-transform:uppercase;text-wrap:balance}
+.lede{max-width:58ch;color:var(--ink-2);font-size:17px;margin-top:10px}
+.switch{display:inline-flex;border:2px solid var(--wall);border-radius:999px;padding:3px;gap:3px;background:var(--panel)}
+.switch button{font:600 14px var(--body);color:var(--ink-2);background:none;border:0;border-radius:999px;padding:8px 18px;cursor:pointer}
+.switch button[aria-checked="true"]{background:var(--ink);color:var(--paper)}
+
+/* the rig */
+.rig{background:var(--panel);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:24px 24px;border:1px solid var(--rule);border-radius:6px;padding:20px 0 18px;display:flex;flex-direction:column;gap:14px}
+.rig-head{display:flex;flex-wrap:wrap;gap:10px 32px;justify-content:space-between;align-items:flex-end;padding-inline:20px}
+.rig-head > div{min-width:0}
+h2{font-family:var(--display);font-weight:700;font-size:28px;line-height:1.05;letter-spacing:.01em;text-transform:uppercase;text-wrap:balance}
+.rig-sub{color:var(--ink-2);max-width:66ch;font-size:14.5px;margin-top:4px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-family:var(--mono);font-size:12px;color:var(--ink-2);list-style:none;margin:0;padding:0}
+.legend li{display:inline-flex;align-items:center;gap:6px}
+.sw{display:inline-block;width:12px;height:12px;border-radius:2px;flex:none}
+.sw-w{background:var(--women)} .sw-c{background:var(--woc)} .sw-m{background:var(--men);border:1px solid var(--ink-3)}
+.sw-s{background:repeating-linear-gradient(135deg,var(--women) 0 3px,var(--woc) 3px 6px)}
+.ln{display:inline-block;width:18px;border-top:2px dashed var(--ink);flex:none}
+.ln.par{border-top:1.5px dashed var(--ink-3)}
+
+.scroller{overflow-x:auto;padding:4px 0 2px}
+.pipeline{position:relative;z-index:0;display:grid;grid-template-columns:repeat(var(--n),minmax(104px,1fr));grid-template-rows:auto var(--pipe-h) 108px auto auto;min-width:calc(var(--n) * 104px + 48px);padding-inline:24px}
+#flow{position:absolute;left:0;top:0;z-index:2;pointer-events:none}
+.stage{display:grid;grid-row:1 / span 5;grid-template-rows:subgrid;min-width:0}
+.stage-label{align-self:end;padding:0 20px 28px 22px;display:flex;flex-direction:column;gap:1px;min-width:0}
+.stage-label .tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin-bottom:3px}
+.stage-label .name{font-weight:600;font-size:15px;line-height:1.2}
+.stage-label .sub{font-family:var(--mono);font-size:11.5px;color:var(--ink-3)}
+
+/* a section of glass pipe */
+.pipe{position:relative;border-block:6px solid var(--wall);border-image:linear-gradient(to bottom,var(--wall-hi) 0,var(--wall) 5px,var(--wall) calc(100% - 5px),var(--wall-lo) 100%) 6;background:var(--men);outline-offset:8px}
+.pipe.unknown{background:repeating-linear-gradient(135deg,var(--men) 0 9px,var(--hatch) 9px 18px);cursor:ns-resize;touch-action:pan-x}
+.shine{position:absolute;inset:0;z-index:3;pointer-events:none;background:linear-gradient(to bottom,var(--shade) 0,transparent 7%,var(--shine) 12%,transparent 22%,transparent 72%,var(--shade) 100%)}
+.band-w,.band-woc{position:absolute;left:0;right:0;bottom:0;height:0;z-index:1;transition:height .9s cubic-bezier(.2,.7,.2,1)}
+.band-w{background:linear-gradient(to bottom,var(--water-top) 0,var(--women) 12px)}
+.band-w.nosplit{background:repeating-linear-gradient(135deg,var(--women) 0 7px,var(--woc) 7px 14px)}
+.band-woc{background:var(--woc)}
+.band-woc.on{box-shadow:0 -2px 0 var(--panel)}
+.pipe.unknown .band-w{opacity:.42;transition:none}
+.parity{position:absolute;left:0;right:0;bottom:50%;border-top:1.5px dashed var(--ink-3);z-index:4;opacity:.75;pointer-events:none}
+.gline{position:absolute;left:0;right:0;border-top:2px dashed var(--ink);z-index:4;pointer-events:none}
+.gtag{position:absolute;right:6px;bottom:3px;font-family:var(--mono);font-size:11px;color:var(--ink);background:var(--panel);padding:0 4px;border-radius:2px;white-space:nowrap}
+.readout{position:absolute;left:16px;top:10px;z-index:4;font-family:var(--display);font-weight:800;font-size:clamp(26px,2.7vw,36px);line-height:1;color:var(--ink);font-variant-numeric:tabular-nums;pointer-events:none}
+.readout span{font-size:.55em;margin-left:1px;color:var(--ink-2)}
+.pipe.unknown .readout{color:var(--ink-2)}
+.readout.small{font-family:var(--mono);font-weight:500;font-size:12px;line-height:1.5;display:flex;flex-direction:column}
+.readout.small .rl{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;color:var(--ink);font-size:12px;margin:0}
+.readout.small .sw{width:9px;height:9px}
+
+/* bolted flanges, end caps, valve */
+.flange,.cap{position:absolute;top:-20px;bottom:-20px;z-index:3;border-radius:3px;pointer-events:none}
+.flange{left:-11px;width:22px;background:
+  linear-gradient(90deg,transparent 10px,var(--wall-lo) 10px,var(--wall-lo) 12px,transparent 12px),
+  radial-gradient(circle at 5.5px 6px,var(--wall-hi) 0,var(--wall-hi) 2.2px,transparent 2.7px),
+  radial-gradient(circle at 16.5px 6px,var(--wall-hi) 0,var(--wall-hi) 2.2px,transparent 2.7px),
+  radial-gradient(circle at 5.5px calc(100% - 6px),var(--wall-hi) 0,var(--wall-hi) 2.2px,transparent 2.7px),
+  radial-gradient(circle at 16.5px calc(100% - 6px),var(--wall-hi) 0,var(--wall-hi) 2.2px,transparent 2.7px),
+  linear-gradient(to bottom,var(--wall-hi),var(--wall) 16%,var(--wall) 78%,var(--wall-lo))}
+.stage.newsource .flange{background:
+  linear-gradient(90deg,transparent 10px,var(--brass-lo) 10px,var(--brass-lo) 12px,transparent 12px),
+  radial-gradient(circle at 5.5px 6px,var(--brass-hi) 0,var(--brass-hi) 2.2px,transparent 2.7px),
+  radial-gradient(circle at 16.5px 6px,var(--brass-hi) 0,var(--brass-hi) 2.2px,transparent 2.7px),
+  radial-gradient(circle at 5.5px calc(100% - 6px),var(--brass-hi) 0,var(--brass-hi) 2.2px,transparent 2.7px),
+  radial-gradient(circle at 16.5px calc(100% - 6px),var(--brass-hi) 0,var(--brass-hi) 2.2px,transparent 2.7px),
+  linear-gradient(to bottom,var(--brass-hi),var(--brass) 16%,var(--brass) 78%,var(--brass-lo))}
+.flange::after{content:"";position:absolute;left:5px;top:100%;width:12px;height:0;border-radius:0 0 6px 6px;background:linear-gradient(to bottom,var(--rust),transparent);transition:height 1.2s}
+.stage.leaky .flange::after{height:30px}
+.cap{width:12px;background:linear-gradient(to bottom,var(--wall-hi),var(--wall) 16%,var(--wall) 78%,var(--wall-lo))}
+.cap.l{left:-8px} .cap.r{right:-8px}
+.wheel{position:absolute;left:-17px;top:-64px;z-index:5;width:34px;height:34px;padding:0;border:0;background:none;color:var(--valve);cursor:pointer;border-radius:50%;transition:transform 1.1s cubic-bezier(.3,.6,.2,1)}
+.wheel svg{display:block}
+.wheel.open{transform:rotate(270deg)}
+.stem{position:absolute;left:-3px;top:-31px;width:6px;height:12px;background:var(--wall);z-index:3}
+
+/* floor, buckets, cause chips */
+.drip{position:relative;border-bottom:3px solid var(--floor)}
+.bucket{position:absolute;left:0;bottom:0;width:54px;height:52px;transform:translateX(-50%);overflow:visible}
+.bucket .bk-handle{fill:none;stroke:var(--wall);stroke-width:2}
+.bucket .bk-body{fill:var(--bucket);opacity:.55}
+.bucket .bk-water{fill:var(--women)}
+.bucket .bk-out{fill:none;stroke:var(--wall);stroke-width:2.5;stroke-linejoin:round}
+.bucket .bk-rim{stroke:var(--wall);stroke-width:4;stroke-linecap:round}
+.loss{position:absolute;left:31px;bottom:4px;font-family:var(--mono);font-size:12px;color:var(--ink);white-space:nowrap;font-variant-numeric:tabular-nums}
+.foot{padding:6px 2px 0 22px;white-space:nowrap;font-family:var(--mono);font-size:12px;color:var(--ink-2);min-height:28px;font-variant-numeric:tabular-nums}
+.foot input[type=range]{width:calc(100% - 10px);margin:0;accent-color:var(--women);cursor:pointer}
+.foot .off{color:var(--ink);font-weight:500}
+.tags{position:relative;min-height:0}
+.pipeline.flowed .tags{min-height:var(--tags-h,34px)}
+.tagstack{position:absolute;left:0;top:4px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:4px}
+.chip{font:500 11px var(--mono);color:var(--ink);background:var(--panel);border:1.5px solid var(--wall);border-radius:999px;padding:3px 8px;white-space:nowrap;cursor:pointer}
+.chip:hover,.chip[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+
+.controls{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;padding-inline:20px}
+.btn{font:600 15px var(--body);border-radius:4px;padding:10px 18px;cursor:pointer;border:2px solid var(--ink);background:none;color:var(--ink)}
+.btn.primary{background:var(--ink);color:var(--paper);display:inline-flex;align-items:center;gap:9px}
+.btn.primary svg{color:var(--valve)}
+.btn[disabled]{opacity:.5;cursor:default}
+.check{display:inline-flex;align-items:center;gap:8px;font-size:14.5px;cursor:pointer}
+.check input{width:16px;height:16px;accent-color:var(--woc)}
+.status{flex:1 1 280px;min-width:0;color:var(--ink-2);font-size:14.5px}
+.status b{color:var(--ink)}
+.inspector{padding-inline:20px;font-size:14.5px;color:var(--ink-2);min-height:1.55em;max-width:110ch}
+.inspector b{color:var(--ink)}
+
+/* causes and findings */
+.block{display:flex;flex-direction:column;gap:18px}
+.block-head{display:flex;flex-direction:column;gap:4px}
+.block-head p{color:var(--ink-2);max-width:78ch}
+.findings{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:28px 40px}
+.finding{border-top:3px solid var(--wall);padding-top:12px;display:flex;flex-direction:column;gap:10px;min-width:0;scroll-margin-top:16px}
+.finding.hot{border-top-color:var(--women)}
+.where{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+h3{font-family:var(--display);font-weight:700;font-size:22px;line-height:1.1;text-transform:uppercase;letter-spacing:.01em;text-wrap:balance}
+.finding p{color:var(--ink-2);max-width:60ch}
+.finding p b{color:var(--ink);font-weight:600}
+.bars{display:grid;grid-template-columns:auto 1fr auto;gap:7px 10px;align-items:center;font-family:var(--mono);font-size:12.5px}
+.bars .bt{position:relative;height:13px;min-width:0}
+.bars .bt i{display:block;height:100%;background:var(--women);border-radius:0 4px 4px 0}
+.bars .bt i.ref{background:var(--ink-3)}
+.bars .bt em{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink)}
+.bars .bv{text-align:right;font-variant-numeric:tabular-nums;color:var(--ink)}
+.bars .bl{color:var(--ink-2)}
+.cap-t{font-family:var(--mono);font-size:11.5px;color:var(--ink-3)}
+.mini{border-collapse:collapse;font-family:var(--mono);font-size:12.5px;font-variant-numeric:tabular-nums}
+.mini th,.mini td{padding:4px 14px 4px 0;text-align:right;border-bottom:1px solid var(--rule)}
+.mini th:first-child,.mini td:first-child{text-align:left}
+.mini th{font-weight:500;color:var(--ink-3)}
+
+.caveats{border-top:3px solid var(--wall);padding-top:12px;display:flex;flex-direction:column;gap:14px}
+.caveats ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:16px 36px}
+.caveats li{color:var(--ink-2);min-width:0}
+.caveats li b{display:block;color:var(--ink);font-weight:600}
+
+details{border-top:1px solid var(--rule);padding-top:12px}
+summary{cursor:pointer;font-weight:600}
+.tablewrap{overflow-x:auto;margin-top:10px}
+.full{border-collapse:collapse;font-size:13.5px;font-variant-numeric:tabular-nums;min-width:520px}
+.full th,.full td{padding:6px 16px 6px 0;text-align:right;border-bottom:1px solid var(--rule);white-space:nowrap}
+.full th:first-child,.full td:first-child,.full th:last-child,.full td:last-child{text-align:left}
+.full th{font-family:var(--mono);font-size:11.5px;font-weight:500;color:var(--ink-3)}
+.sources{font-size:13.5px;color:var(--ink-2);display:flex;flex-direction:column;gap:8px}
+.sources ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
+.sources li{max-width:100ch}
+
+.switch.small button{padding:6px 14px;font-size:13px}
+.sw-md{background:var(--men-dot)} .sw-mc{background:var(--moc)}
+.sw-gh{background:var(--men-dot);box-shadow:inset 0 0 0 2.5px var(--women);border-radius:50%}
+.sw-na{background:none;box-shadow:inset 0 0 0 1px var(--ink-3);border-radius:50%}
+.dot{border-radius:50%}
+
+/* pools view: each level is a pool of 100 people */
+.tank{display:none}
+.pipeline.pools{grid-template-rows:auto auto auto auto auto}
+.pipeline.pools #flow,.pipeline.pools .band-w,.pipeline.pools .band-woc,.pipeline.pools .shine,.pipeline.pools .parity,.pipeline.pools .gline,
+.pipeline.pools .flange,.pipeline.pools .cap,.pipeline.pools .wheel,.pipeline.pools .stem,.pipeline.pools .bucket{display:none}
+.pipeline.pools .stage-label{padding:0 8px 10px 8px}
+.pipeline.pools .pipe,.pipeline.pools .pipe.unknown{border:0;border-image:none;background:none;margin-inline:4px;align-self:end;display:flex;flex-direction:column;gap:6px}
+.pipeline.pools .readout{position:static;padding-left:4px}
+.pipeline.pools .tank{display:block;position:relative;border:4px solid var(--wall);border-top:0;border-radius:0 0 10px 10px;padding:5px;background:var(--panel)}
+.pipeline.pools .tank::after{content:"";position:absolute;left:-4px;right:-4px;top:calc(50% - 2px);border-top:1.5px dashed var(--ink-3);opacity:.8;pointer-events:none}
+.cells{display:grid;grid-template-columns:repeat(10,1fr);gap:1.5px;transform:scaleY(-1)}
+.cell{aspect-ratio:1;border-radius:50%;background:var(--men-dot);transition:background-color .35s,opacity .35s}
+.cell.w{background:var(--women)} .cell.c{background:var(--woc)} .cell.mc{background:var(--moc)}
+.cell.wx{background:repeating-linear-gradient(135deg,var(--women) 0 2px,var(--woc) 2px 4px)}
+.cell.na{background:none;box-shadow:inset 0 0 0 1px var(--ink-3)}
+.cell.g{background:var(--women);opacity:.42} .cell.u{background:var(--hatch)}
+.cell.ghost{box-shadow:inset 0 0 0 2px var(--women)}
+.pipeline.pools .drip{border-bottom:0}
+.pipeline.pools .loss{position:static;display:block;text-align:center;padding-top:6px;min-height:24px}
+.pipeline.pools .loss.neg::before{content:"";display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--men-dot);box-shadow:inset 0 0 0 2px var(--women);margin-right:5px}
+.pipeline.pools .foot{padding:2px 6px 0;text-align:center}
+.pipeline.pools .tagstack{left:50%}
+
+@media (max-width:640px){
+  :root{--pipe-h:200px}
+  .readout{left:14px}
+}
+@media (prefers-reduced-motion:reduce){
+  .band-w,.band-woc,.wheel,.flange::after,.cell{transition:none}
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="masthead">
+    <div>
+      <p class="eyebrow">Inequality in Organizations</p>
+      <h1>The Leaky Pipeline</h1>
+      <p class="lede">Take 100 people at each step from graduation to the top job. How many are women? Set your guesses, then open the valve and see where it leaks.</p>
+    </div>
+    <div class="switch" role="radiogroup" aria-label="Country" id="countries"></div>
+  </header>
+
+  <section class="rig" aria-labelledby="rig-title">
+    <div class="rig-head">
+      <div>
+        <h2 id="rig-title"></h2>
+        <p class="rig-sub" id="rig-sub"></p>
+      </div>
+      <div class="switch small" role="radiogroup" aria-label="View">
+        <button type="button" role="radio" id="view-pipe" aria-checked="true">Leaky pipe</button>
+        <button type="button" role="radio" id="view-pools" aria-checked="false">Pools of 100</button>
+      </div>
+      <ul class="legend" id="legend"></ul>
+    </div>
+    <div class="scroller" id="scroller">
+      <div class="pipeline" id="pipeline"><canvas id="flow" aria-hidden="true"></canvas></div>
+    </div>
+    <div class="controls">
+      <button type="button" class="btn primary" id="valve">
+        <svg viewBox="0 0 32 32" width="18" height="18" aria-hidden="true"><circle cx="16" cy="16" r="12.5" fill="none" stroke="currentColor" stroke-width="4"/><path d="M16 4v24M4 16h24" stroke="currentColor" stroke-width="3" fill="none"/></svg>
+        <span id="valve-text">Open the valve</span>
+      </button>
+      <button type="button" class="btn" id="reset">Start over</button>
+      <label class="check" id="race-wrap"><input type="checkbox" id="chk-race"> Split women by race</label>
+      <p class="status" id="status" aria-live="polite"></p>
+    </div>
+    <p class="inspector" id="inspector" aria-live="polite"></p>
+  </section>
+
+  <section class="block" id="causes-block" hidden>
+    <div class="block-head">
+      <h2>Why the share falls</h2>
+      <p>Each label under the figure names one documented cause that bites around that point in a career. The causes overlap, and no study assigns the lost points to a single one of them.</p>
+    </div>
+    <div class="findings" id="causes"></div>
+  </section>
+
+  <section class="block" id="more-block" hidden>
+    <div class="block-head"><h2>What else the numbers show</h2></div>
+    <div class="findings" id="findings"></div>
+  </section>
+
+  <section class="caveats" id="caveats" hidden>
+    <h3>Reasons to distrust a pipe</h3>
+    <ul id="caveat-list"></ul>
+  </section>
+
+  <details id="table-details" hidden>
+    <summary>Every number as a table</summary>
+    <div class="tablewrap" id="tablewrap"></div>
+  </details>
+
+  <section class="sources" id="sources" hidden></section>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------- data (the Sources section on the page says where each number comes from) ---------- */
+var WIW = "McKinsey & LeanIn.Org 2025";
+var DATA = {
+  us: {
+    label: "United States",
+    title: "United States: from the lecture hall to the corner office",
+    sub: "Women’s share of degrees awarded in 2021–22, of employees at each level in 124 large companies at the start of 2025, and of Fortune 500 chief executives in 2026.",
+    hasSplit: true,
+    stages: [
+      {name:"Bachelor’s degree", tag:"Degrees awarded", w:58.5, src:"NCES, 2021–22",
+       note:"Women earned 58.5% of the 2.0 million bachelor’s degrees awarded in the United States in 2021–22 (NCES). No breakdown by race is shown for this section."},
+      {name:"Master’s degree", w:62.6, src:"NCES, 2021–22",
+       note:"Women earned 62.6% of the 880,000 master’s degrees awarded in 2021–22 (NCES), and 57.0% of doctorates. The pipe gains water here: nothing leaks."},
+      {name:"Entry level", tag:"124 large companies", w:49, ww:28, woc:21, wm:32, moc:18, src:WIW, leak:[["field","Degree field"]]},
+      {name:"Manager", w:41, ww:27, woc:14, wm:40, moc:17, src:WIW, leak:[["rung","Broken rung"]]},
+      {name:"Director", w:39, ww:29, woc:10, wm:44, moc:15, src:WIW, leak:[["mother","Motherhood"]]},
+      {name:"Vice president", w:35, ww:26, woc:9, wm:51, moc:13, src:WIW, leak:[["parttime","Part-time"]]},
+      {name:"Senior VP", w:31, ww:23, woc:8, wm:54, moc:14, src:WIW, leak:[["sponsor","Sponsorship"]]},
+      {name:"C-suite", w:30, ww:23, woc:7, wm:56, moc:12, src:WIW},
+      {name:"CEO", tag:"Fortune 500, 2026", w:11, src:"Fortune, June 2026", leak:[["top","The top job"]],
+       note:"55 of the 500 chief executives on the 2026 Fortune 500 list are women. This source has no breakdown by race."}
+    ],
+    causes: [
+      {id:"field", where:"Degree → first job", title:"Field of study",
+       html:"<p>Women earn most degrees, but not in the fields that feed the best-paid corporate tracks. They are <b>a quarter of engineering graduates</b> and 42% of full-time MBA students.</p>",
+       rows:[["All bachelor’s degrees",58.5,null,1],["Business",46.5],["MBA students",42],["Engineering",25.3],["Computer science",22.6]], max:70, unit:"%",
+       cap:"Women’s share of US bachelor’s degrees by field, 2021–22 (NCES counts), and of full-time MBA enrollment at Forté Foundation member schools, 2024."},
+      {id:"rung", where:"Entry level → manager", title:"The broken rung",
+       html:"<p>Inside companies, the biggest leak is the first promotion: women are <b>49% of entry-level staff and 41% of managers</b>. The gap is far wider for Black women.</p>",
+       rows:[["Men",100,null,1],["Women",93],["Asian women",82],["Latinas",82],["Black women",60]], max:100,
+       cap:"Promoted from entry level to manager during 2024, per 100 men promoted. McKinsey & LeanIn.Org."},
+      {id:"mother", where:"Mid-career", title:"Motherhood",
+       html:"<p>Having a young child takes mothers out of the labor force and leaves fathers in it. Averaged over the five to ten years after a first birth, American women’s earnings run <b>31% behind men’s</b>, measured against where each stood before the birth (Kleven and co-authors, 2019).</p><p>Among parents of children under 13, 37% of mothers are not working for pay against 18% of fathers. The Child Penalty Atlas puts the employment cost of a first child at 25% for American mothers and 26% for French ones.</p>",
+       rows:[["Fathers, child under 6",95.3,null,1],["Mothers, child under 6",68.0],["Fathers, child under 18",93.7,null,1],["Mothers, child under 18",73.9]], max:100, unit:"%",
+       cap:"Labor force participation rate of parents, 2025. Bureau of Labor Statistics."},
+      {id:"parttime", where:"Mid-career", title:"Part-time",
+       html:"<p>Women are almost twice as likely as men to work part time, and are 62% of all part-timers. The gap opens with children: <b>16% of mothers of under-13s work part time against 4% of fathers</b>. Part-time jobs rarely lead to the next promotion.</p>",
+       rows:[["Men",12.4,null,1],["Women",23.1]], max:40, unit:"%",
+       cap:"Share of employed people who usually work part time, 2025. Computed from Bureau of Labor Statistics counts."},
+      {id:"sponsor", where:"Every level", title:"Sponsorship",
+       html:"<p>A sponsor is a senior person who puts your name forward. Employees with one were promoted at nearly twice the rate of those without (<b>65% against 35%</b> over two years). Women are less likely to have one at every level.</p>",
+       rows:[["Entry: men",45,null,1],["Entry: women",31],["Mid: men",54,null,1],["Mid: women",51],["Senior: men",72,null,1],["Senior: women",66]], max:100, unit:"%",
+       cap:"Share of employees who have a sponsor at work, 2025. McKinsey & LeanIn.Org."},
+      {id:"top", where:"C-suite → CEO", title:"The top job",
+       html:"<p><b>55 women run Fortune 500 companies in 2026.</b> That is 11%, the highest share in the list’s history.</p><p>The drop from the C-suite to the chief executive’s chair is 19 points, as many as the five steps before it put together. The two numbers come from different sets of companies, so read the comparison as an order of magnitude.</p>"}
+    ],
+    extras:
+      '<article class="finding"><h3>The pipe starts overfull</h3>' +
+      '<p>Women are the clear majority of American graduates. If supply were the problem, the pipe would run dry at the tap. <b>It starts at 58.5% and passes below half at the first job.</b></p>' +
+      '<p>Entry-level jobs are not only graduate jobs: women are 47% of the whole US labor force, where 57.3% of women take part against 67.8% of men.</p></article>' +
+      '<article class="finding"><h3>Who fills the pipe instead</h3>' +
+      '<p>Only one group’s share grows on the way up. <b>White men are 32% of entry-level staff and 56% of the C-suite.</b> Men of color leak too.</p>' +
+      '<table class="mini"><thead><tr><th>Share of level</th><th>Entry</th><th>C-suite</th></tr></thead><tbody>' +
+      '<tr><td>White men</td><td>32%</td><td>56%</td></tr><tr><td>White women</td><td>28%</td><td>23%</td></tr>' +
+      '<tr><td>Women of color</td><td>21%</td><td>7%</td></tr><tr><td>Men of color</td><td>18%</td><td>12%</td></tr></tbody></table></article>',
+    caveat: "The degree sections count new graduates in one year, the middle sections count staff in 124 surveyed companies, and the CEO section is the Fortune 500 list. The report also warns that its sample has more women than typical firms.",
+    sources:
+      '<li><a href="https://nces.ed.gov/programs/digest/d23/tables/dt23_318.10.asp">NCES, Digest of Education Statistics 2023, Table 318.10</a>: women’s share of bachelor’s (58.5%), master’s (62.6%) and doctoral (57.0%) degrees, 2021–22. The 2022–23 counts give 58.4% and 61.3%. Shares by field are computed from the counts in <a href="https://nces.ed.gov/programs/digest/d23/tables/dt23_318.30.asp">Table 318.30</a>. MBA share: <a href="https://www.fortefoundation.org/forte-foundation-reports-womens-enrollment-in-full-time-mba-programs-tops-6000-for-first-time-and-record-eight-schools-reach-gender-parity/">Forté Foundation, October 2024</a> (61 member schools).</li>' +
+      '<li><a href="https://leanin.org/media/documents/Women-in-the-Workplace-2025.pdf">McKinsey &amp; Company and LeanIn.Org, <i>Women in the Workplace 2025</i></a>, pp. 5 and 18. Pipeline data from 124 companies in the United States and Canada, as of 1 January 2025. Women’s totals here are the sum of the report’s “white women” and “women of color” rows; its headline C-suite figure is 29%, because the race rows leave out employees whose race was not reported.</li>' +
+      '<li><a href="https://www.bls.gov/news.release/famee.nr0.htm">Bureau of Labor Statistics, Employment Characteristics of Families 2025</a>: parents’ labor force participation. <a href="https://www.bls.gov/cps/cpsaat08.htm">Current Population Survey Table 8</a> and <a href="https://www.bls.gov/cps/cpsaat02.htm">Table 2</a>: part-time shares and the labor force, computed from 2025 counts. The 2025 averages leave out October, when the survey was not run.</li>' +
+      '<li><a href="https://www.nber.org/system/files/working_papers/w25524/w25524.pdf">Kleven, Landais, Posch, Steinhauer and Zweimüller (2019), “Child Penalties across Countries”</a>: 31% long-run earnings penalty for US mothers. <a href="https://www.federalreserve.gov/publications/2026-economic-well-being-of-us-households-in-2025-living-arrangements-care-work.htm">Federal Reserve, Economic Well-Being of US Households in 2025</a>: mothers and fathers of children under 13. <a href="https://www.nber.org/system/files/working_papers/w31649/w31649.pdf">Kleven, Landais and Leite-Mariante, “The Child Penalty Atlas”</a> (NBER working paper 31649, appendix figure A.4): employment penalties of 25.2% (United States) and 26.4% (France).</li>' +
+      '<li><a href="https://fortune.com/2026/06/03/how-many-women-are-fortune-500-ceos/">Fortune, 3 June 2026</a>: 55 women chief executives on the 2026 Fortune 500 list.</li>'
+  },
+  fr: {
+    label: "France",
+    title: "France: from the amphithéâtre to the top of the CAC 40",
+    sub: "Women’s share of university degrees awarded in 2023, of cadres nationally, then of managers, executive committees and top seats in CAC 40 firms in 2025.",
+    hasSplit: false,
+    stages: [
+      {name:"Bachelor’s degree", sub:"Licence", tag:"Degrees awarded", w:60, src:"RERS 2026 (session 2023)",
+       note:"Women earned 60.0% of the 198,633 licence degrees awarded by French universities in 2023: 63.8% of general licences and 47.1% of vocational ones."},
+      {name:"Master’s degree", sub:"Master", w:61.7, src:"RERS 2026 (session 2023)",
+       note:"Women earned 61.7% of the 139,031 university master’s degrees awarded in 2023, and 47.1% of doctorates. The pipe gains water here: nothing leaks."},
+      {name:"Managers & professionals", sub:"Cadres", tag:"All of France", w:42, src:"INSEE, 2019", leak:[["mother","Motherhood"],["parttime","Part-time"]],
+       note:"42% of cadres are women, twice the 21% of 1982 (INSEE, 2019). Women are 48.5% of everyone in work. In 2024, 20.4% of working women were cadres against 25.4% of working men."},
+      {name:"Managers & engineers", sub:"Cadres, CAC 40", tag:"CAC 40 firms", w:37.7, src:"SKEMA Observatory 2026", leak:[["field","Degree field"]],
+       note:"37.7% of managers and engineers in CAC 40 firms are women. This is the pool executive committees draw from (SKEMA, 2025 data)."},
+      {name:"Executive committee", sub:"Comex", w:28.8, src:"SKEMA Observatory 2026", leak:[["ceiling","Glass ceiling"]],
+       note:"28.8% of CAC 40 executive committee members are women (153 of 531), up from 6.3% in 2008."},
+      {name:"Chair or CEO", sub:"Président·e / DG", w:7.5, src:"SKEMA Observatory 2026", leak:[["quota","No quota"]],
+       note:"Women hold 6 of the 80 chair and CEO seats in the CAC 40: four chief executives and two board chairs."}
+    ],
+    causes: [
+      {id:"mother", where:"Degree → cadre", title:"Motherhood",
+       html:"<p>After a birth, <b>more than one mother in two stops or cuts back work</b> for at least a month. One father in nine does. Five years on, mothers earn about 25% less than they would have without the child; fathers lose nothing (Pora and Wilner, INSEE).</p><p>Mothers are 94% of those drawing the parental-leave benefit (PreParE).</p>",
+       rows:[["Men, no child",89.4,null,1],["Women, no child",88.7],["Men, 2 children*",95.8,null,1],["Women, 2 children*",79.4],["Men, 3+ children*",93.7,null,1],["Women, 3+ children*",53.3]], max:100, unit:"%",
+       cap:"Share of 25-to-49-year-olds in the labour force, 2024. * At least one child under 3. INSEE."},
+      {id:"parttime", where:"Degree → cadre", title:"Part-time",
+       html:"<p>More than one working woman in four is part-time, <b>three times the rate for men</b>, and 77.5% of part-time employees are women. Asked why, 29.5% of the women say it is to look after children or a relative; 8.3% of the men do.</p>",
+       rows:[["Men",8.7,null,1],["Women",26.8]], max:40, unit:"%",
+       cap:"Share of people in work who are part-time, France, 2024. INSEE."},
+      {id:"field", where:"Cadres → CAC 40", title:"Degree field",
+       html:"<p>Women are half of business-school students but <b>under a third of engineering students</b>, and the industrial groups of the CAC 40 fill their management ranks with engineers.</p>",
+       rows:[["All students",56.1,null,1],["Business schools",51.1],["Doctorates awarded",47.1],["Engineering schools",29.3]], max:70, unit:"%",
+       cap:"Women’s share of students, start of the 2025 academic year; doctorates awarded in 2023. RERS 2026."},
+      {id:"ceiling", where:"Cadres → comex", title:"The glass ceiling",
+       html:"<p>SKEMA measures the ceiling as the gap between women’s share of a firm’s managers and their share of its executive committee. Across the CAC 40 it is <b>8.9 points</b>, two and a half times smaller than in 2008.</p>",
+       rows:[["Managers & engineers",37.7],["Executive committee",28.8]], max:50, unit:"%",
+       cap:"CAC 40, 2025. SKEMA Observatory."},
+      {id:"quota", where:"Comex → top seats", title:"No quota at the top",
+       html:"<p>French law has required 40% women on boards since 2017, and CAC 40 boards are at <b>45.9%</b>. Executive committees got their own quota only on 1 March 2026. The top seats have none.</p>",
+       rows:[["Boards",45.9,40],["Executive committees",28.8,30],["Chair and CEO seats",7.5,null]], max:50, unit:"%",
+       cap:"CAC 40, 2025. Black tick = legal minimum (Copé-Zimmermann 40%; Rixain 30%, rising to 40% in 2029)."}
+    ],
+    extras:
+      '<article class="finding"><h3>The pipe starts overfull</h3>' +
+      '<p><b>Six university graduates in ten are women</b>, at licence and at master’s level alike. If supply were the problem, the pipe would run dry at the tap.</p>' +
+      '<p>Women are 56.1% of all students, 48.5% of people in work and 42% of cadres.</p></article>' +
+      '<article class="finding"><h3>What the leak costs</h3>' +
+      '<p>Women in the private sector earn <b>21.8% less</b> than men. Little of that is unequal pay for the same job. Most of it is fewer hours and different, lower-paid jobs: women hold 42% of private-sector posts and 24% of the best-paid 1%.</p>' +
+      bars([["All jobs, all hours",21.8],["Equal working time",14.0],["Same job, same site",3.6]], 25, "%") +
+      '<p class="cap-t">How much less women earn than men, private sector, 2024. INSEE.</p></article>' +
+      '<article class="finding"><h3>Six of eighty</h3>' +
+      '<p>CAC 40 firms have 80 chair and chief executive seats. Women hold six of them: <b>four chief executives</b> (Engie, Orange, Veolia, Bureau Veritas) and <b>two board chairs</b>. No woman holds both titles at once.</p>' +
+      '<p>Beyond the CAC 40, 741 large firms reported under the Rixain law for 2026. 323 have at least 30% women among their senior executives, 287 do not, and 131 could not compute the figure.</p></article>' +
+      '<article class="finding"><h3>The chart France cannot draw</h3>' +
+      '<p>Switch to the United States and you can split the pipe by race, because American employers record it. <b>French law tightly restricts collecting data on ethnic origin</b>, so no French survey can show what happens to women of color along the way.</p>' +
+      '<p>In the US data their share falls from 21% at entry level to 7% in the C-suite.</p></article>',
+    caveat: "The degree sections count university graduates in 2023, the cadres section covers all of France in 2019, and the last three cover only the 40 largest listed firms in 2025.",
+    sources:
+      '<li><a href="https://www.education.gouv.fr/sites/default/files/document/8-resultats-diplomes-insertonpdf-519297.pdf">Repères et références statistiques 2026 (DEPP/SIES), fiche 8.15</a>: university degrees awarded in 2023 (licence 60.0%, master 61.7%, doctorate 47.1% women). The ministry’s <i>Chiffres clés 2026</i> rounds master’s graduates of 2023–24 to 60%. <a href="https://www.education.gouv.fr/sites/default/files/document/7-les-etudiantspdf-519348.pdf">Fiche 7.14</a>: students by type of school, start of the 2025 academic year.</li>' +
+      '<li><a href="https://www.insee.fr/fr/statistiques/4768237">INSEE Focus n° 205</a>: women’s share of employment (48.5%) and of cadres (42%) in 2019. <a href="https://www.insee.fr/fr/statistiques/8391807">INSEE Première n° 2044</a>: cadres and part-time in 2024. <i>Emploi, chômage, revenus du travail</i>, 2025 edition: <a href="https://www.insee.fr/fr/statistiques/8376846?sommaire=8376908">labour-force rates by number of children</a> and <a href="https://www.insee.fr/fr/statistiques/8376858?sommaire=8376908">reasons for part-time</a> (employees only).</li>' +
+      '<li><a href="https://www.insee.fr/fr/statistiques/1281361">INSEE Première n° 1454</a> (2010 survey): 55% of mothers and 12% of fathers stopped or cut back work after a birth. <a href="https://www.insee.fr/fr/statistiques/4226475">Pora and Wilner, INSEE Analyses n° 48</a> (2019): mothers’ pay five years after a birth. <a href="https://evaluation.securite-sociale.fr/home/famille/1-8-1-beneficiaires-de-prestatio.html">REPSS Famille, indicator 1.8.1</a>: PreParE beneficiaries, June 2024. <a href="https://www.insee.fr/fr/statistiques/8743657">INSEE Focus n° 377</a>: pay gap, private sector, 2024.</li>' +
+      '<li><a href="https://www.skema.edu/fr/news/cac-40-plus-de-femmes-mais-toujours-pas-au-sommet">SKEMA Observatory of the Feminisation of Companies, 2026 edition</a> (Michel Ferrary), 2025 data for the CAC 40: 28.81% of executive committees, 45.9% of boards, 7.5% of chair and CEO seats. The 37.7% share of managers and engineers is that 28.81% plus the 8.9-point gap the study reports between the management pool and the executive committee.</li>' +
+      '<li><a href="https://egapro.travail.gouv.fr/stats">Egapro, Ministère du Travail</a>: Rixain law declarations for 2026 (741 firms with 1,000 or more employees).</li>'
+  }
+,
+  in: {
+    label: "India",
+    title: "India: from the campus to the corner office",
+    sub: "Women’s share of degrees awarded in 2021–22, of the labour force in 2025, and of staff at each level in formal-sector companies surveyed by McKinsey in 2024–25.",
+    hasSplit: false,
+    stages: [
+      {name:"Degrees awarded", sub:"All higher education", tag:"AISHE, 2021–22", w:50.8, src:"AISHE 2021–22",
+       note:"5.46 million of the 10.7 million students who graduated in 2021–22 were women, 50.8% (AISHE). Women are 55.4% of postgraduate students and 46.5% of PhD students."},
+      {name:"Labour force", sub:"Age 15 and over", tag:"All of India", w:32.5, src:"PLFS 2025", leak:[["home","Home-making"],["field","Degree field"]],
+       note:"200 million women and 416 million men were in the labour force in 2025, so women are 32.5% of it (PLFS). 40.0% of women aged 15 and over take part, against 79.1% of men."},
+      {name:"Entry level", tag:"Formal-sector firms", w:33, src:"McKinsey 2025",
+       note:"33% of entry-level workers in the surveyed organizations are women (McKinsey, Women in the Workplace 2025: India, Nigeria and Kenya; 324 organizations across the three countries). Women at this level average 39 years old; men 32."},
+      {name:"Manager", w:24, src:"McKinsey 2025", leak:[["rung","First promotion"]],
+       note:"24% of managers are women. Beyond manager the report says the decline slows to about two points per level."},
+      {name:"C-suite", w:17, src:"McKinsey 2025 (press)",
+       note:"17% of C-suite positions are held by women. This figure is read from the report’s chart as reported in the press; the report page itself states the entry-level and manager figures."}
+    ],
+    causes: [
+      {id:"home", where:"Degree → labour force", title:"Home-making",
+       html:"<p>The leak in India comes before the first job. Only <b>40% of women aged 15 and over are in the labour force</b>, against 79% of men. Asked why not, 44.4% of the women outside it cite child care and commitments at home.</p><p>Women aged 15 to 59 spend about 305 minutes a day on unpaid domestic work; when they care for household members they spend 140 minutes a day on it, men 74.</p>",
+       rows:[["Men in the labour force",79.1,null,1],["Women in the labour force",40.0],["Men doing unpaid domestic work",27.1,null,1],["Women doing unpaid domestic work",81.5]], max:100, unit:"%",
+       cap:"Labour force participation, age 15+, 2025 (PLFS). Share of people aged 6+ who did unpaid domestic work on the survey day, 2024 (Time Use Survey)."},
+      {id:"field", where:"Degree → labour force", title:"Degree field",
+       html:"<p>Women are 55% of postgraduate students but <b>29% of engineering students and 42% of management students</b>, the two pools that feed entry-level jobs in large firms.</p>",
+       rows:[["All degrees awarded",50.8,null,1],["Postgraduate enrolment",55.4],["Management (MBA level)",41.9],["Engineering & technology",29.1]], max:70, unit:"%",
+       cap:"Women’s share of graduates and of enrolment by field, 2021–22. AISHE."},
+      {id:"rung", where:"Entry level → manager", title:"The first promotion",
+       html:"<p>Inside companies the steepest step is the first one: <b>from 33% of entry-level workers to 24% of managers</b>. After that the decline slows to about two points a level. McKinsey also finds a seven-year age gap at entry level: women average 39, men 32, so women start later or stay stuck longer.</p>",
+       rows:[["Entry level",33],["Manager",24],["C-suite",17]], max:50, unit:"%",
+       cap:"Women’s share by level, India, 2024–25 data. McKinsey, Women in the Workplace 2025: India, Nigeria and Kenya. C-suite figure as reported by the press from the report’s chart."}
+    ],
+    extras:
+      '<article class="finding"><h3>Half the graduates, a third of the workers</h3>' +
+      '<p>Half of India’s graduates are women. A third of its labour force is. <b>The pipe loses most of its water before the first job</b>, and the drop is far larger in cities: 28% of urban women aged 15 and over were in the labour force in 2023–24, against 47.6% of rural women.</p>' +
+      bars([["Rural men",80.2,null,1],["Rural women",47.6],["Urban men",75.6,null,1],["Urban women",28.0]], 100, "%") +
+      '<p class="cap-t">Labour force participation rate, age 15+, July 2023 to June 2024. PLFS.</p></article>' +
+      '<article class="finding"><h3>Boards by law</h3>' +
+      '<p>Since 2015 every listed company in India must have at least one woman director, and the largest ones at least one independent woman director. <b>Women held 18.3% of board seats in 2023</b>, up from 13.8% in 2018 (Deloitte). The law asks for one seat, not a share, and the number has settled a little above what one seat per board implies.</p></article>',
+    caveat: "The degree section counts everyone who graduated in 2021–22. The labour force section is the whole country aged 15 and over, most of whom have no degree. The last three come from a McKinsey survey of formal-sector employers, and the C-suite figure is taken from press coverage of its chart.",
+    sources:
+      '<li><a href="https://education.gov.in/sites/upload_files/mhrd/files/statistics-new/AISHE%20Book_2021-22_4.pdf">All India Survey on Higher Education 2021–22</a>, Ministry of Education: pass-outs by sex, enrolment by level and discipline.</li>' +
+      '<li><a href="https://www.mospi.gov.in/uploads/latestReleases/latest_release_1774607827733_3e8964a9-268b-4cc9-ad65-cfc8a9e32f08_Press_note_AR_PLFS_2025_23032025_V2.1_26032026_final.pdf">Periodic Labour Force Survey, annual report 2025</a> (MoSPI press note, March 2026): participation rates, labour force counts (women’s share computed from them) and reasons for being outside the labour force. <a href="https://mospi.gov.in/sites/default/files/press_release/Press_note_AR_PLFS_2023_24_22092024.pdf">PLFS 2023–24</a> for the rural and urban rates. <a href="https://mospi.gov.in/sites/default/files/press_release/PR_TUS_25022025.pdf">Time Use Survey 2024</a> press release for unpaid work.</li>' +
+      '<li><a href="https://www.mckinsey.com/industries/social-sector/our-insights/women-in-the-workplace-2025-india-nigeria-and-kenya">McKinsey, <i>Women in the Workplace 2025: India, Nigeria, and Kenya</i></a> (May 2025): entry level 33%, manager 24%, the age gap and the pace of decline above manager. The 17% C-suite figure is from <a href="https://www.hercircle.in/en/engage/career/career/indias-gender-gap-in-the-workplace-begins-early-and-deepens-at-the-first-promotion-says-mckinsey-9257.html">press coverage</a> of the report’s chart.</li>' +
+      '<li><a href="https://www.deloitte.com/in/en/issues/trust/women-in-the-boardroom-a-global-perspective.html">Deloitte, <i>Women in the boardroom</i>, 8th edition</a>: 18.3% of board seats in India, 2023.</li>'
+  },
+  cn: {
+    label: "China",
+    title: "China: from the campus to the chairman’s office",
+    sub: "Women’s share of students and of the employed in 2024, then of executives of listed companies in 2021 and of chief executives of the 512 Chinese companies in a global stock index in 2024.",
+    hasSplit: false,
+    stages: [
+      {name:"Undergraduates", sub:"本专科在校生", tag:"Students, 2024", w:49.9, src:"NBS 2024",
+       note:"19.4 million women were enrolled in regular undergraduate and junior-college programmes in 2024, 49.9% of the total (NBS). Across all higher education, 50.8%."},
+      {name:"Postgraduates", sub:"研究生", w:50.0, src:"NBS 2024",
+       note:"2.05 million women were master’s or doctoral students in 2024, 50.0% of the total (NBS, which does not split the two levels)."},
+      {name:"Employed persons", sub:"就业人员", tag:"All of China", w:43.4, src:"NBS 2024", leak:[["unpaid","Unpaid work"]],
+       note:"320 million women were employed at the end of 2024, 43.4% of all employed persons (NBS). ILO modelled estimates put labour force participation at 59% of women and 70% of men."},
+      {name:"Urban formal employers", sub:"城镇非私营单位", w:41.7, src:"NBS 2024", leak:[["ads","Hiring ads"]],
+       note:"68.9 million women, 41.7% of the employees of urban non-private units (state-owned, collective, foreign-invested and listed employers) in 2024 (NBS)."},
+      {name:"Executives", sub:"高管", tag:"Listed companies", w:19, src:"Bain & Spencer Stuart 2023", leak:[["promo","Promotion"]],
+       note:"19% of the executives of Chinese listed companies were women at the end of 2021 (Bain & Company and Spencer Stuart, from S&P Capital IQ data), against 24% in the United States and 26% in the United Kingdom."},
+      {name:"CEO", tag:"MSCI index, 2024", w:6.4, src:"MSCI 2024", leak:[["quota","No quota"]],
+       note:"6.4% of the 512 Chinese companies in the MSCI ACWI index had a woman chief executive in 2024; 8.4% had a woman chair; women held 15.8% of board seats."}
+    ],
+    causes: [
+      {id:"unpaid", where:"Degree → work", title:"Unpaid work",
+       html:"<p>Chinese women do <b>almost twice the unpaid work of men</b>: 3 h 29 min a day against 1 h 52 min for those who do any. The child penalty on employment is small by world standards, about 4% (Kleven and co-authors, from the 2005 mini-census), so the leak is not mothers leaving work but what they carry while they stay.</p>",
+       rows:[["Men: unpaid work",112,null,1],["Women: unpaid work",209],["Men: paid work",404,null,1],["Women: paid work",355]], max:420, unit:" min",
+       cap:"Minutes per day per participant, averaged over the week. Third national Time Use Survey, 2024, NBS."},
+      {id:"ads", where:"Work → formal employers", title:"Hiring ads",
+       html:"<p>Human Rights Watch read 36,000 job advertisements in 2017 and 2018. In the national civil service, <b>19% of 2018 postings stated a requirement or preference for men</b>, up from 13% in 2017. It also found ‘men only’ or ‘men preferred’ wording in postings by Alibaba, Tencent and Baidu.</p>",
+       rows:[["2017 civil-service postings",13],["2018 civil-service postings",19]], max:30, unit:"%",
+       cap:"Share of national civil-service job postings requiring or preferring men. Human Rights Watch, Only Men Need Apply, 2018."},
+      {id:"promo", where:"Formal employers → executives", title:"Promotion",
+       html:"<p>In Zhaopin’s 2026 survey of 3,857 jobseekers, <b>60.9% of women had been asked about marriage and children</b> when applying, against 35.5% of men. 12.6% of women said gender discrimination had cost them a promotion; 3.4% of men said so. These are self-reports from an online survey, reported by the press.</p>",
+       rows:[["Men asked about marriage, children",35.5,null,1],["Women asked",60.9],["Men: discrimination hurt promotion",3.4,null,1],["Women: discrimination hurt promotion",12.6]], max:70, unit:"%",
+       cap:"Zhaopin, China women in the workplace survey 2026, as reported by Tide News and Sohu."},
+      {id:"quota", where:"Executives → CEO", title:"No quota at the top",
+       html:"<p>China has no board gender quota. Of the 512 Chinese companies in the MSCI index, <b>19.3% have no woman on the board at all</b>. Compare France, where boards reached 45.9% women under a 40% quota.</p>",
+       rows:[["Board seats",15.8],["Chairs",8.4],["Chief executives",6.4]], max:50, unit:"%",
+       cap:"Chinese constituents of the MSCI ACWI index, October 2024. MSCI, Women on Boards and Beyond. Deloitte puts board seats at 15.1% on a wider sample."}
+    ],
+    extras:
+      '<article class="finding"><h3>The pipe starts at parity</h3>' +
+      '<p><b>Half of China’s students are women, at every level.</b> They are 43% of the employed and 42% of staff at formal urban employers. The share falls by half between the formal workforce and the executive floor, and by two thirds again between there and the chief executive’s chair.</p></article>' +
+      '<article class="finding"><h3>A small child penalty, a large leak</h3>' +
+      '<p>The Child Penalty Atlas finds that a first child cuts Chinese women’s employment by about 4% relative to men, against 25% in the United States and 26% in France. <b>Chinese women stay in work after children; they do not reach the top.</b> The 2005 data predate the end of the one-child policy.</p></article>',
+    caveat: "The first four sections are national statistics for 2024. The executive section is listed companies at the end of 2021, from a consultancy report. The CEO section is the 512 Chinese companies in a global stock index in 2024, not all listed firms.",
+    sources:
+      '<li><a href="https://www.stats.gov.cn/sj/zxfb/202512/t20251230_1962183.html">National Bureau of Statistics, 2024 monitoring report on the Outline for Women’s Development (2021–2030)</a> (in Chinese; <a href="https://www.stats.gov.cn/english/PressRelease/202502/t20250207_1958577.html">2023 edition in English</a>): students, employed persons, urban non-private units. <a href="https://www.stats.gov.cn/sj/zxfb/202410/t20241031_1957215.html">Third national Time Use Survey, bulletin 3</a> (2024): paid and unpaid work. Labour force participation: ILO modelled estimates via the World Bank (indicators SL.TLF.CACT.FE.ZS and MA.ZS).</li>' +
+      '<li><a href="https://www.bain.cn/pdfs/202303070235066586.pdf">Bain &amp; Company and Spencer Stuart, 女性领导力崛起 (The rise of women’s leadership), March 2023</a>: 19% of executives, end of 2021, S&amp;P Capital IQ data.</li>' +
+      '<li><a href="https://www.msci.com/downloads/web/msci-com/research-and-insights/Research-Reports/women-on-boards-and-beyond/Women%20on%20Boards%20and%20Beyond%20-%202024%20-%20Progress%20Report.pdf">MSCI, <i>Women on Boards and Beyond: 2024 Progress Report</i></a>, appendices 2 to 5: China constituents of the MSCI ACWI index. <a href="https://www.deloitte.com/content/dam/assets-zone1/kr/legacy-assets/docs/center-for-corporate-governance/202403-women-in-the-boardroom-8th-edition-wib.pdf">Deloitte, <i>Women in the boardroom</i>, 8th edition</a>: 15.1%.</li>' +
+      '<li><a href="https://www.hrw.org/report/2018/04/23/only-men-need-apply/gender-discrimination-job-advertisements-china">Human Rights Watch, <i>Only Men Need Apply</i>, April 2018</a>. <a href="https://www.nber.org/system/files/working_papers/w31649/w31649.pdf">Kleven, Landais and Leite-Mariante, <i>The Child Penalty Atlas</i></a> (NBER working paper 31649): China 0.041. Zhaopin 2026 survey (3,857 respondents) as reported by <a href="https://tidenews.com.cn/news.html?id=3388716">Tide News</a> and <a href="https://m.sohu.com/a/993125309_121778725">Sohu</a>.</li>'
+  }
+};
+
+var $ = function(s){ return document.querySelector(s); };
+var pipeline = $("#pipeline"), canvas = $("#flow"), ctx = canvas.getContext("2d"), scroller = $("#scroller");
+var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+var WHEEL = '<svg viewBox="0 0 32 32" width="34" height="34" aria-hidden="true"><circle cx="16" cy="16" r="12.5" fill="none" stroke="currentColor" stroke-width="4"/><path d="M16 4v24M4 16h24M7.5 7.5l17 17M24.5 7.5l-17 17" stroke="currentColor" stroke-width="2.4" fill="none"/><circle cx="16" cy="16" r="3.6" fill="currentColor"/></svg>';
+var BUCKET = '<svg class="bucket" viewBox="0 0 54 52" aria-hidden="true"><path class="bk-handle" d="M5 12 Q27 -10 49 12"/><path class="bk-body" d="M5 12 H49 L44 50 H10 Z"/><path class="bk-water" d=""/><path class="bk-out" d="M5 12 H49 L44 50 H10 Z"/><path class="bk-rim" d="M3 12 H51"/></svg>';
+var BUCKET_FULL = 22;   /* points of share that fill a bucket to the brim */
+
+var S = {country:"us", view:"pipe", revealed:{}, guesses:{}, split:false};
+var CELLS = '<div class="tank"><div class="cells">' + new Array(101).join('<i class="cell"></i>') + '</div></div>';
+var els = [], geom = [], parts = [], gainAcc = [], upTo = 0, frontX = null, openT = 0, frameT = 0, spawnAcc = 0, lastT = 0, clock = 0, colors = {}, cw = 0, ch = 0;
+
+function fmt(v){ return Number.isInteger(v) ? String(v) : v.toFixed(1); }
+function r1(v){ return Math.round(v * 10) / 10; }
+function cur(){ return DATA[S.country]; }
+function done(){ return S.revealed[S.country] && upTo === cur().stages.length - 1; }
+function lossAt(i){ var st = cur().stages; return i > 0 ? r1(st[i-1].w - st[i].w) : 0; }
+
+/* ---------- build ---------- */
+function build(){
+  var d = cur(), c = S.country, n = d.stages.length, maxChips = 1;
+  if(!S.guesses[c]) S.guesses[c] = d.stages.map(function(){ return Math.round(d.stages[0].w); });
+  if(!d.hasSplit) S.split = false;
+  Array.prototype.forEach.call(pipeline.querySelectorAll(".stage"), function(el){ el.remove(); });
+  pipeline.style.setProperty("--n", n);
+  $("#rig-title").textContent = d.title;
+  $("#rig-sub").textContent = d.sub;
+  Array.prototype.forEach.call(document.querySelectorAll("#countries button"), function(b){ b.setAttribute("aria-checked", String(b.getAttribute("data-c") === c)); });
+
+  els = d.stages.map(function(s, i){
+    var root = document.createElement("div");
+    root.className = "stage" + (i === 0 ? " first" : "") + (i === n-1 ? " last" : "") + (s.tag && i > 0 ? " newsource" : "");
+    if(s.leak) maxChips = Math.max(maxChips, s.leak.length);
+    root.innerHTML =
+      '<div class="stage-label">' + (s.tag ? '<span class="tag">' + s.tag + '</span>' : '') +
+        '<span class="name">' + s.name + '</span>' + (s.sub ? '<span class="sub">' + s.sub + '</span>' : '') + '</div>' +
+      '<div class="pipe" tabindex="0" role="group" aria-label="' + s.name + '">' +
+        (i === 0 ? '<i class="cap l"></i>' : '<i class="flange"></i>') + (i === n-1 ? '<i class="cap r"></i>' : '') +
+        (i === 1 ? '<i class="stem"></i><button type="button" class="wheel" aria-label="Open the valve">' + WHEEL + '</button>' : '') +
+        '<div class="band-w"></div><div class="band-woc"></div><i class="shine"></i><div class="parity"></div>' +
+        '<div class="gline" hidden><span class="gtag"></span></div><div class="readout"></div>' + CELLS + '</div>' +
+      '<div class="drip">' + (i > 0 ? BUCKET + '<span class="loss"></span>' : '') + '</div>' +
+      '<div class="foot"></div>' +
+      '<div class="tags"><div class="tagstack"></div></div>';
+    pipeline.appendChild(root);
+    var e = {root:root, pipe:root.querySelector(".pipe"), bandW:root.querySelector(".band-w"), bandWoc:root.querySelector(".band-woc"),
+      gline:root.querySelector(".gline"), gtag:root.querySelector(".gtag"), readout:root.querySelector(".readout"),
+      drip:root.querySelector(".drip"), water:root.querySelector(".bk-water"), loss:root.querySelector(".loss"),
+      foot:root.querySelector(".foot"), tagstack:root.querySelector(".tagstack"), wheel:root.querySelector(".wheel"),
+      tank:root.querySelector(".tank"), cells:root.querySelectorAll(".cell"), range:null, fill:0};
+    wire(e, i);
+    return e;
+  });
+  pipeline.style.setProperty("--tags-h", (8 + maxChips * 28) + "px");
+
+  upTo = S.revealed[c] ? n - 1 : 0;
+  frontX = S.revealed[c] ? Infinity : null;
+  parts = []; spawnAcc = 0; gainAcc = d.stages.map(function(){ return 0; });
+  for(var i = 0; i < n; i++){ updateStage(i); if(S.revealed[c]) setBucket(i, bucketTarget(i)); }
+  measure();
+  syncUI();
+  if(reduce) draw();
+}
+
+function wire(e, i){
+  function setFromPointer(ev){
+    var box = S.view === "pools" ? e.tank : e.pipe;
+    var r = box.getBoundingClientRect(), top = r.top + box.clientTop, h = box.clientHeight;
+    var v = Math.round((top + h - ev.clientY) / h * 100);
+    setGuess(i, Math.max(0, Math.min(100, v)));
+  }
+  e.pipe.addEventListener("pointerdown", function(ev){
+    if(i === 0 || i <= upTo || S.revealed[S.country]){ inspect(i); return; }
+    e.pipe.setPointerCapture(ev.pointerId); setFromPointer(ev);
+  });
+  e.pipe.addEventListener("pointermove", function(ev){
+    if(e.pipe.hasPointerCapture && e.pipe.hasPointerCapture(ev.pointerId) && !S.revealed[S.country]) setFromPointer(ev);
+  });
+  e.pipe.addEventListener("pointerenter", function(){ inspect(i); });
+  e.pipe.addEventListener("focus", function(){ inspect(i); });
+  if(e.wheel){
+    e.wheel.addEventListener("pointerdown", function(ev){ ev.stopPropagation(); });
+    e.wheel.addEventListener("click", function(ev){ ev.stopPropagation(); openValve(); });
+  }
+}
+
+function setGuess(i, v){ S.guesses[S.country][i] = v; updateStage(i); }
+
+function bucketTarget(i){ return i > 0 && i <= upTo ? Math.max(0, Math.min(1, lossAt(i) / BUCKET_FULL)) : 0; }
+function setBucket(i, f){
+  var e = els[i]; if(!e.water) return;
+  e.fill = f;
+  if(f <= 0.004){ e.water.setAttribute("d", ""); return; }
+  var y = 50 - f * 36, dx = (50 - y) * 5 / 38;
+  e.water.setAttribute("d", "M" + (10 - dx).toFixed(1) + " " + y.toFixed(1) + " H" + (44 + dx).toFixed(1) + " L44 50 H10 Z");
+}
+
+function paintPool(i){
+  /* 100 dots, filled from the bottom: who is in this pool */
+  var d = cur(), s = d.stages[i], e = els[i], g = S.guesses[S.country][i], rev = i <= upTo;
+  var prev = i > 0 ? Math.round(d.stages[i-1].w) : 0, race = S.split && s.woc != null, k, cls, f;
+  for(k = 0; k < 100; k++){
+    f = null;
+    if(!rev) cls = k < g ? "g" : "u";
+    else if(race) cls = k < s.woc ? "c" : k < s.woc + s.ww ? "w" : k < s.woc + s.ww + s.moc ? "mc" : k < s.woc + s.ww + s.moc + s.wm ? "m" : "na";
+    else if(k < Math.floor(s.w)) cls = S.split ? "wx" : "w";
+    else if(k < s.w){ cls = "m"; f = (s.w - k) * 100; }
+    else cls = (!S.split && k < prev) ? "m ghost" : "m";
+    e.cells[k].className = "cell " + cls;
+    e.cells[k].style.background = f != null ? "linear-gradient(90deg,var(--women) " + f + "%,var(--men-dot) " + f + "%)" : "";
+  }
+}
+
+function updateStage(i){
+  var d = cur(), s = d.stages[i], e = els[i], g = S.guesses[S.country][i], rev = i <= upTo;
+  e.pipe.classList.toggle("unknown", !rev);
+  if(rev){
+    var split = S.split && s.woc != null;
+    e.bandW.style.height = s.w + "%";
+    e.bandW.classList.toggle("nosplit", S.split && s.woc == null);
+    e.bandWoc.style.height = (split ? s.woc : 0) + "%";
+    e.bandWoc.classList.toggle("on", split);
+    e.readout.classList.toggle("small", split);
+    e.readout.innerHTML = split
+      ? '<span class="rl"><i class="sw sw-w"></i>' + s.ww + '% white</span><span class="rl"><i class="sw sw-c"></i>' + s.woc + '% of color</span>'
+      : '<b>' + fmt(s.w) + '</b><span>%</span>';
+    if(i > 0){
+      var loss = lossAt(i), diff = r1(g - s.w);
+      e.root.classList.toggle("leaky", loss > 0);
+      e.gline.hidden = false; e.gline.style.bottom = g + "%"; e.gtag.textContent = "you " + g;
+      e.loss.textContent = (loss > 0 ? "−" : "+") + fmt(Math.abs(loss));
+      e.loss.classList.toggle("neg", loss > 0);
+      e.foot.innerHTML = Math.abs(diff) < 1 ? '<span class="off">spot on</span>'
+        : '<span class="off">' + (diff > 0 ? "+" : "−") + fmt(Math.abs(diff)) + '</span> ' + (diff > 0 ? "too high" : "too low");
+      e.range = null;
+      if(s.leak && !e.tagstack.firstChild){
+        e.tagstack.innerHTML = s.leak.map(function(l){ return '<button type="button" class="chip" aria-pressed="false" data-cause="' + l[0] + '">' + l[1] + '</button>'; }).join("");
+        Array.prototype.forEach.call(e.tagstack.querySelectorAll(".chip"), function(b){
+          b.addEventListener("click", function(){ showCause(b.getAttribute("data-cause"), true); });
+        });
+      }
+      if(reduce) setBucket(i, bucketTarget(i));
+    } else { e.foot.textContent = "given"; }
+  } else {
+    e.root.classList.remove("leaky");
+    e.bandW.style.height = g + "%"; e.bandW.classList.remove("nosplit");
+    e.bandWoc.style.height = "0%"; e.bandWoc.classList.remove("on");
+    e.readout.classList.remove("small");
+    e.readout.innerHTML = '<b>' + g + '</b><span>?</span>';
+    e.gline.hidden = true; if(e.loss){ e.loss.textContent = ""; e.loss.classList.remove("neg"); } e.tagstack.innerHTML = ""; setBucket(i, 0);
+    if(!e.range){
+      e.foot.innerHTML = '<input type="range" min="0" max="100" step="1" id="guess-' + S.country + '-' + i + '" aria-label="Your guess for ' + s.name + ', percent women">';
+      e.range = e.foot.querySelector("input");
+      e.range.addEventListener("input", function(){ setGuess(i, Number(e.range.value)); });
+    }
+    e.range.value = g;
+  }
+  paintPool(i);
+}
+
+/* ---------- UI state ---------- */
+function syncUI(){
+  var d = cur(), c = S.country, isDone = done(), flowing = S.revealed[c] && !isDone;
+  $("#valve").disabled = S.revealed[c];
+  var pools = S.view === "pools";
+  pipeline.classList.toggle("pools", pools);
+  $("#view-pipe").setAttribute("aria-checked", String(!pools));
+  $("#view-pools").setAttribute("aria-checked", String(pools));
+  $("#valve-text").textContent = pools ? (flowing ? "Counting…" : (isDone ? "Split revealed" : "Reveal the split"))
+    : (flowing ? "Flowing…" : (isDone ? "Valve open" : "Open the valve"));
+  var wheel = els[1] && els[1].wheel; if(wheel) wheel.classList.toggle("open", S.revealed[c]);
+  pipeline.classList.toggle("flowed", S.revealed[c]);
+  $("#race-wrap").hidden = !d.hasSplit;
+  $("#chk-race").checked = S.split; $("#chk-race").disabled = !isDone;
+  ["#causes-block","#more-block","#caveats","#table-details","#sources"].forEach(function(id){ $(id).hidden = !isDone; });
+  renderLegend();
+  if(isDone){
+    renderFindings(); renderTable();
+    $("#sources").innerHTML = "<h3>Sources</h3><ul>" + d.sources + "</ul>";
+    $("#status").innerHTML = score();
+    $("#inspector").textContent = pools ? "Each pool is 100 people at that step. Ringed dots are men in places that would be women’s if the pool matched the one before it. Tap a pool or a label for detail."
+      : "Tap a section of pipe for its full breakdown, or a bucket label for what causes that leak.";
+  } else if(flowing){ $("#status").textContent = ""; }
+  else {
+    $("#status").innerHTML = pools ? "The first pool is given. For each of the others, drag up or down inside it, or use its slider, to set <b>how many of the 100 are women</b>."
+      : "The first section is given. Drag the water level in each hatched section, or use its slider, to set <b>your guess</b>.";
+    $("#inspector").textContent = pools ? "If every pool mirrored the first one, they would all look the same. That is where the guesses start."
+      : "If nothing leaked, every section would look like the first one. That is where the guesses start.";
+  }
+}
+
+function score(){
+  var d = cur(), g = S.guesses[S.country], sum = 0, high = 0, n = d.stages.length - 1;
+  for(var i = 1; i <= n; i++){ var df = g[i] - d.stages[i].w; sum += Math.abs(df); if(df >= 1) high++; }
+  return "<b>" + fmt(d.stages[0].w) + "% at the start, " + fmt(d.stages[n].w) + "% at the end.</b> Your guesses were off by <b>" + (sum / n).toFixed(1) +
+    " points</b> on average, and too optimistic at " + high + " of " + n + " steps.";
+}
+
+function renderLegend(){
+  var h = "";
+  if(S.view === "pools"){
+    if(S.split) h = '<li><i class="sw dot sw-w"></i>White women</li><li><i class="sw dot sw-c"></i>Women of color</li><li><i class="sw dot sw-md"></i>White men</li><li><i class="sw dot sw-mc"></i>Men of color</li><li><i class="sw sw-na"></i>Race not reported</li><li><i class="sw dot sw-s"></i>Women, no race data in this source</li>';
+    else h = '<li><i class="sw dot sw-w"></i>Women</li><li><i class="sw dot sw-md"></i>Men</li><li><i class="sw sw-gh"></i>Would be a woman if this pool matched the one before</li>';
+    h += '<li><i class="ln par"></i>50 of 100</li>';
+  } else {
+    if(S.split) h = '<li><i class="sw sw-w"></i>White women</li><li><i class="sw sw-c"></i>Women of color</li><li><i class="sw sw-s"></i>Women, race not reported</li>';
+    else h = '<li><i class="sw sw-w"></i>Women (water)</li>';
+    h += '<li><i class="sw sw-m"></i>Men (rest of the pipe)</li><li><i class="ln"></i>Your guess</li><li><i class="ln par"></i>50% parity</li><li>Buckets: points of share lost</li>';
+  }
+  $("#legend").innerHTML = h;
+}
+
+function inspect(i){
+  if(i > upTo) return;
+  var d = cur(), s = d.stages[i], t;
+  if(s.note) t = "<b>" + s.name + ".</b> " + s.note;
+  else {
+    t = "<b>" + s.name + ".</b> " + s.w + "% women (" + s.ww + "% white women, " + s.woc + "% women of color) and " +
+      (100 - s.w) + "% men (" + s.wm + "% white men, " + s.moc + "% men of color). Race rows leave out people whose race was not reported, so they can fall a point or two short of 100.";
+  }
+  $("#inspector").innerHTML = t;
+}
+
+function showCause(id, scroll){
+  var cs = cur().causes, c = null;
+  for(var k = 0; k < cs.length; k++) if(cs[k].id === id) c = cs[k];
+  if(!c) return;
+  Array.prototype.forEach.call(document.querySelectorAll(".chip"), function(b){ b.setAttribute("aria-pressed", String(b.getAttribute("data-cause") === id)); });
+  Array.prototype.forEach.call(document.querySelectorAll("#causes .finding"), function(a){ a.classList.toggle("hot", a.id === "cause-" + id); });
+  var tmp = document.createElement("div"); tmp.innerHTML = c.html;
+  $("#inspector").innerHTML = "<b>" + c.title + ".</b> " + (tmp.querySelector("p") ? tmp.querySelector("p").innerHTML : "") + ' <a href="#cause-' + id + '">Details below</a>';
+}
+
+/* ---------- findings ---------- */
+function bars(rows, max, unit){
+  return '<div class="bars">' + rows.map(function(r){
+    return '<span class="bl">' + r[0] + '</span><span class="bt"><i class="' + (r[3] ? "ref" : "") + '" style="width:' + (r[1] / max * 100) + '%"></i>' +
+      (r[2] != null ? '<em style="left:' + (r[2] / max * 100) + '%"></em>' : '') + '</span><span class="bv">' + fmt(r[1]) + (unit || "") + '</span>';
+  }).join("") + '</div>';
+}
+function renderFindings(){
+  var d = cur();
+  $("#causes").innerHTML = d.causes.map(function(c){
+    return '<article class="finding" id="cause-' + c.id + '"><span class="where">' + c.where + '</span><h3>' + c.title + '</h3>' + c.html +
+      (c.rows ? bars(c.rows, c.max, c.unit) : '') + (c.cap ? '<p class="cap-t">' + c.cap + '</p>' : '') + '</article>';
+  }).join("");
+  $("#findings").innerHTML = d.extras;
+  $("#caveat-list").innerHTML =
+    '<li><b>It is a snapshot, not a journey.</b>Each number counts who holds that level today. Today’s executives were hired decades ago into a less equal intake, so part of the drop is history still working its way through.</li>' +
+    '<li><b>It cannot say why.</b>A falling share fits women leaving, women being passed over, and men being hired in from outside. A dripping pipe only suggests the first.</li>' +
+    '<li><b>The sections are not one company.</b>' + d.caveat + '</li>';
+}
+
+function renderTable(){
+  var d = cur(), us = S.country === "us";
+  var h = '<table class="full"><thead><tr><th>Level</th><th>Women</th>' + (us ? '<th>White women</th><th>Women of color</th><th>White men</th><th>Men of color</th>' : '') + '<th>Source</th></tr></thead><tbody>';
+  d.stages.forEach(function(s){
+    function c(v){ return '<td>' + (v == null ? "–" : v + "%") + '</td>'; }
+    h += '<tr><td>' + s.name + (s.sub ? " (" + s.sub + ")" : "") + '</td><td>' + fmt(s.w) + '%</td>' + (us ? c(s.ww) + c(s.woc) + c(s.wm) + c(s.moc) : '') + '<td>' + s.src + '</td></tr>';
+  });
+  $("#tablewrap").innerHTML = h + '</tbody></table>';
+}
+
+/* ---------- valve ---------- */
+function openValve(){
+  var c = S.country;
+  if(S.revealed[c]) return;
+  S.revealed[c] = true;
+  if(reduce || !geom.length){
+    upTo = cur().stages.length - 1; frontX = Infinity;
+    for(var i = 0; i <= upTo; i++) updateStage(i);
+  } else { frontX = geom[0].x1; openT = performance.now(); }
+  syncUI();
+  if(reduce){ measure(); draw(); }
+}
+function resetAll(){
+  var c = S.country;
+  S.revealed[c] = false; S.guesses[c] = null; S.split = false;
+  build(); scroller.scrollLeft = 0;
+}
+
+/* ---------- canvas: water, leaks ---------- */
+function readColors(){
+  var cs = getComputedStyle(document.documentElement);
+  colors = {women:cs.getPropertyValue("--women").trim(), woc:cs.getPropertyValue("--woc").trim(), bubble:cs.getPropertyValue("--bubble").trim()};
+  if(reduce && geom.length) draw();
+}
+function measure(){
+  var pr = pipeline.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  cw = pipeline.clientWidth; ch = pipeline.clientHeight;
+  canvas.style.width = cw + "px"; canvas.style.height = ch + "px";
+  canvas.width = Math.round(cw * dpr); canvas.height = Math.round(ch * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  geom = els.map(function(e){
+    var r = e.pipe.getBoundingClientRect(), wall = e.pipe.clientTop, dr = e.drip.getBoundingClientRect();
+    return {x0:r.left - pr.left, x1:r.right - pr.left, w:r.width, yBot:r.bottom - pr.top - wall, H:e.pipe.clientHeight, wall:wall,
+            leakY:r.bottom - pr.top + 14, floorY:dr.bottom - pr.top - 3};
+  });
+  if(reduce) draw();
+}
+function hasSplit(i){ return S.split && cur().stages[i].woc != null; }
+function band(i, grp){
+  var s = cur().stages[i];
+  if(hasSplit(i)) return grp === "woc" ? [0, s.woc / 100] : [s.woc / 100, s.ww / 100];
+  return [0, s.w / 100];
+}
+function passRatio(i, grp){
+  var a = cur().stages[i], b = cur().stages[i+1];
+  if(hasSplit(i) && hasSplit(i+1)) return grp === "woc" ? b.woc / a.woc : b.ww / a.ww;
+  return b.w / a.w;
+}
+function spawn(i){
+  var st = cur().stages, ref = null, grp, bh;
+  for(var q = i; q < st.length && !ref; q++) if(st[q].woc != null) ref = st[q];
+  grp = (ref && Math.random() < ref.woc / ref.w) ? "woc" : "ww"; bh = band(i, grp);
+  parts.push({state:"flow", i:i, x:geom[i].x0 + 3, y:0, u:.1 + .8 * Math.random(), sp:.58 + .32 * Math.random(), grp:grp, b:bh[0], h:bh[1], vx:0, vy:0});
+}
+function droplet(i, grp){
+  var g = geom[i];   /* joint at the left edge of stage i */
+  parts.push({state:"drip", i:i, grp:grp, x:g.x0 + (Math.random() * 6 - 3), y:g.leakY, vx:Math.random() * 70 - 35, vy:Math.random() * 60});
+}
+function waterY(i){ return geom[i].floorY - 2 - els[i].fill * 36; }
+function step(dt){
+  var st = cur().stages, n = st.length;
+  if(!geom.length || geom[0].w < 10) return;
+  clock += dt;
+  var V = geom[0].w / 1.15, open = frontX !== null;
+  frameT = performance.now();
+  advance();
+  var k = open ? 1 : .28, i;
+  spawnAcc += st[0].w * .5 * k * dt;
+  while(spawnAcc >= 1){ spawnAcc -= 1; spawn(0); }
+  for(i = 1; i <= upTo; i++){
+    /* where the share rises, extra water joins at the joint; buckets fill toward their level */
+    var gain = st[i].w - st[i-1].w;
+    if(gain > 0){ gainAcc[i] += gain * .5 * dt; while(gainAcc[i] >= 1){ gainAcc[i] -= 1; spawn(i); } }
+    var tgt = bucketTarget(i), e = els[i];
+    if(Math.abs(tgt - e.fill) > .003) setBucket(i, e.fill + (tgt - e.fill) * Math.min(1, dt * .9));
+  }
+  for(var j = parts.length - 1; j >= 0; j--){
+    var p = parts[j];
+    if(p.state === "flow"){
+      p.x += V * p.sp * k * dt;
+      i = p.i;
+      if(p.x >= geom[i].x1){
+        if(i === n - 1 || i >= upTo){ parts.splice(j, 1); continue; }
+        if(Math.random() > passRatio(i, p.grp)){
+          parts.splice(j, 1); droplet(i + 1, p.grp); droplet(i + 1, p.grp); continue;
+        }
+        p.i = ++i;
+      }
+      var bh = band(i, p.grp), q = Math.min(1, dt * 7);
+      p.b += (bh[0] - p.b) * q; p.h += (bh[1] - p.h) * q;
+      p.y = geom[i].yBot - (p.b + p.u * p.h) * geom[i].H;
+    } else {
+      p.vy += 900 * dt; p.y += p.vy * dt; p.x += p.vx * dt;
+      var g = geom[p.i], inBucket = Math.abs(p.x - g.x0) < 20;
+      if(p.y > (inBucket ? waterY(p.i) : g.floorY)) parts.splice(j, 1);
+    }
+  }
+}
+function advance(){
+  /* the water front moves on wall-clock time, so the reveal completes even if frames stall */
+  var n = cur().stages.length;
+  if(frontX === null || frontX === Infinity || !geom.length || upTo >= n - 1) return;
+  var stalled = performance.now() - frameT > 500, moved = false;
+  frontX = geom[0].x1 + (geom[0].w / 1.15) * (performance.now() - openT) / 1000;
+  while(upTo < n - 1 && frontX >= geom[upTo + 1].x0){ upTo++; updateStage(upTo); if(stalled) setBucket(upTo, bucketTarget(upTo)); moved = true; }
+  if(moved){
+    if(scroller.scrollWidth > scroller.clientWidth + 4) scroller.scrollTo({left:Math.max(0, geom[upTo].x0 - scroller.clientWidth * .4), behavior:"smooth"});
+    if(upTo === n - 1){ frontX = Infinity; syncUI(); }
+  }
+}
+function draw(){
+  ctx.clearRect(0, 0, cw, ch);
+  var n = geom.length, st = cur().stages, i, x;
+  ctx.lineCap = "round"; ctx.lineJoin = "round";
+  /* ripples on the water surface */
+  ctx.strokeStyle = colors.bubble; ctx.lineWidth = 1.5; ctx.globalAlpha = .75;
+  for(i = 0; i <= upTo && i < n; i++){
+    var g = geom[i], hpx = els[i].bandW.offsetHeight;
+    if(hpx < 3) continue;
+    ctx.beginPath();
+    for(x = g.x0; x <= g.x1; x += 6){
+      var yy = g.yBot - hpx + 1.5 + (reduce ? 0 : Math.sin(x * .085 + clock * 2.4) * 1.3);
+      if(x === g.x0) ctx.moveTo(x, yy); else ctx.lineTo(x, yy);
+    }
+    ctx.stroke();
+  }
+  /* a stream from each leaking joint into its bucket, as thick as the loss */
+  ctx.globalAlpha = .88; ctx.strokeStyle = colors.women;
+  for(i = 1; i <= upTo && i < n; i++){
+    var loss = st[i-1].w - st[i].w;
+    if(loss < 1.5) continue;
+    var gj = geom[i], y1 = waterY(i) + 2;
+    ctx.lineWidth = Math.max(1.4, Math.min(9, loss * .45));
+    ctx.beginPath(); ctx.moveTo(gj.x0, gj.leakY - 6);
+    for(var y = gj.leakY; y < y1; y += 5) ctx.lineTo(gj.x0 + (reduce ? 0 : Math.sin(y * .11 - clock * 9) * 1.1), y);
+    ctx.lineTo(gj.x0, y1); ctx.stroke();
+  }
+  for(var j = 0; j < parts.length; j++){
+    var p = parts[j];
+    if(p.state === "flow"){
+      var gp = geom[p.i], a = Math.min(1, (p.x - gp.x0) / 14 + (p.i > 0 ? 1 : 0));
+      if(p.i === n - 1 || p.i >= upTo) a = Math.min(a, (gp.x1 - p.x) / 26);
+      if(a <= 0) continue;
+      ctx.globalAlpha = a; ctx.fillStyle = colors.bubble;
+      ctx.beginPath(); ctx.arc(p.x, p.y, 2.1, 0, 6.2832); ctx.fill();
+    } else {
+      ctx.globalAlpha = 1; ctx.fillStyle = (S.split && p.grp === "woc") ? colors.woc : colors.women;
+      ctx.beginPath(); ctx.arc(p.x, p.y, 2.7, 0, 6.2832); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(p.x - 2.3, p.y - 1.4); ctx.lineTo(p.x - p.vx * .012, p.y - 7); ctx.lineTo(p.x + 2.3, p.y - 1.4); ctx.fill();
+    }
+  }
+  ctx.globalAlpha = 1;
+}
+function tick(t){
+  var dt = Math.min(.05, lastT ? (t - lastT) / 1000 : 0); lastT = t;
+  if(!document.hidden){ step(dt); draw(); }
+  requestAnimationFrame(tick);
+}
+
+/* ---------- boot ---------- */
+function start(saved){
+  if(saved && saved.country){ S.country = saved.country; S.view = saved.view || "pipe"; S.revealed = saved.revealed || S.revealed; S.guesses = saved.guesses || S.guesses; S.split = !!saved.split; }
+  else { var hk = location.hash.replace("#", ""); if(DATA[hk]) S.country = hk; if(hk === "pools") S.view = "pools"; }
+  readColors();
+  $("#countries").innerHTML = Object.keys(DATA).map(function(k){ return '<button type="button" role="radio" data-c="' + k + '" aria-checked="false">' + DATA[k].label + '</button>'; }).join("");
+  Array.prototype.forEach.call(document.querySelectorAll("#countries button"), function(b){
+    b.addEventListener("click", function(){ var k = b.getAttribute("data-c"); if(S.country !== k){ S.country = k; build(); scroller.scrollLeft = 0; } });
+  });
+  function setView(v){ if(S.view !== v){ S.view = v; syncUI(); measure(); } }
+  $("#view-pipe").addEventListener("click", function(){ setView("pipe"); });
+  $("#view-pools").addEventListener("click", function(){ setView("pools"); });
+  $("#valve").addEventListener("click", openValve);
+  $("#reset").addEventListener("click", resetAll);
+  $("#chk-race").addEventListener("change", function(ev){
+    S.split = ev.target.checked;
+    for(var i = 0; i <= upTo; i++) updateStage(i);
+    renderLegend();
+    if(reduce) draw();
+  });
+  build();
+  if(window.ResizeObserver) new ResizeObserver(function(){ measure(); }).observe(pipeline);
+  window.addEventListener("resize", measure);
+  var mq = window.matchMedia("(prefers-color-scheme: dark)");
+  if(mq.addEventListener) mq.addEventListener("change", readColors);
+  new MutationObserver(readColors).observe(document.documentElement, {attributes:true, attributeFilter:["data-theme"]});
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(measure);
+  if(!reduce){ requestAnimationFrame(tick); setInterval(advance, 250); }
+}
+var hot = window.claude && window.claude.hot;
+if(hot && hot.snapshot) hot.snapshot(function(){ return {country:S.country, view:S.view, revealed:S.revealed, guesses:S.guesses, split:S.split}; });
+if(hot && hot.ready) hot.ready(start); else start((hot && hot.data) || {});
+})();
+</script>
+</body>
+</html>
