@@ -378,15 +378,17 @@ var DATA = {
   fr: {
     label: "France",
     title: "France: from the amphithéâtre to the top of the CAC 40",
-    sub: "Women’s share of university degrees awarded in 2023, of cadres nationally, then of managers, executive committees and top seats in CAC 40 firms in 2025.",
+    sub: "Women’s share of university degrees awarded in 2023, of permanent jobs and of cadres in 2024, then of managers, executive committees and top seats in CAC 40 firms in 2025.",
     hasSplit: false,
     stages: [
       {name:"Bachelor’s degree", sub:"Licence", tag:"Degrees awarded", w:60, src:"RERS 2026 (session 2023)",
        note:"Women earned 60.0% of the 198,633 licence degrees awarded by French universities in 2023: 63.8% of general licences and 47.1% of vocational ones."},
       {name:"Master’s degree", sub:"Master", w:61.7, src:"RERS 2026 (session 2023)",
        note:"Women earned 61.7% of the 139,031 university master’s degrees awarded in 2023, and 47.1% of doctorates. The pipe gains water here: nothing leaks."},
-      {name:"Managers & professionals", sub:"Cadres", tag:"All of France", w:42, src:"INSEE, 2019", leak:[["mother","Motherhood"],["parttime","Part-time"]],
-       note:"42% of cadres are women, twice the 21% of 1982 (INSEE, 2019). Women are 48.5% of everyone in work. In 2024, 20.4% of working women were cadres against 25.4% of working men."},
+      {name:"Permanent jobs", sub:"CDI, fonctionnaires", tag:"All of France", w:50.0, src:"INSEE, 2024 (computed)", leak:[["cdd","Fixed-term"]],
+       note:"Women hold half of France’s permanent jobs: 10.6 million women and 10.6 million men are on a CDI or are civil servants (computed from INSEE 2024: 74.6% of the 14.2 million working women and 71.2% of the 14.9 million working men). Women are 48.8% of everyone in work."},
+      {name:"Managers & professionals", sub:"Cadres", w:43.4, src:"INSEE, 2024 (computed)", leak:[["mother","Motherhood"],["parttime","Part-time"]],
+       note:"43.4% of cadres are women (computed from INSEE 2024: 20.4% of working women are cadres against 25.4% of working men). INSEE put the share at 42% in 2019 and 21% in 1982."},
       {name:"Managers & engineers", sub:"Cadres, CAC 40", tag:"CAC 40 firms", w:37.7, src:"SKEMA Observatory 2026", leak:[["field","Degree field"]],
        note:"37.7% of managers and engineers in CAC 40 firms are women. This is the pool executive committees draw from (SKEMA, 2025 data)."},
       {name:"Executive committee", sub:"Comex", w:28.8, src:"SKEMA Observatory 2026", leak:[["ceiling","Glass ceiling"]],
@@ -395,11 +397,15 @@ var DATA = {
        note:"Women hold 6 of the 80 chair and CEO seats in the CAC 40: four chief executives and two board chairs."}
     ],
     causes: [
-      {id:"mother", where:"Degree → cadre", title:"Motherhood",
+      {id:"cdd", where:"Degree → permanent job", title:"Fixed-term contracts",
+       html:"<p>Women are half of the people on permanent contracts but <b>59% of those on fixed-term ones</b>. 9.2% of working women are on a CDD against 6.1% of working men, and women are more often civil servants (18.3% against 10.6%).</p>",
+       rows:[["Men on fixed-term contracts",6.1,null,1],["Women on fixed-term contracts",9.2],["Men on permanent contracts",71.2,null,1],["Women on permanent contracts",74.6]], max:100, unit:"%",
+       cap:"Share of people in work, 2024. INSEE, enquête Emploi. Women’s shares of each contract type are computed from these rates and the published headcounts."},
+      {id:"mother", where:"Permanent job → cadre", title:"Motherhood",
        html:"<p>After a birth, <b>more than one mother in two stops or cuts back work</b> for at least a month. One father in nine does. Five years on, mothers earn about 25% less than they would have without the child; fathers lose nothing (Pora and Wilner, INSEE).</p><p>Mothers are 94% of those drawing the parental-leave benefit (PreParE).</p>",
        rows:[["Men, no child",89.4,null,1],["Women, no child",88.7],["Men, 2 children*",95.8,null,1],["Women, 2 children*",79.4],["Men, 3+ children*",93.7,null,1],["Women, 3+ children*",53.3]], max:100, unit:"%",
        cap:"Share of 25-to-49-year-olds in the labour force, 2024. * At least one child under 3. INSEE."},
-      {id:"parttime", where:"Degree → cadre", title:"Part-time",
+      {id:"parttime", where:"Permanent job → cadre", title:"Part-time",
        html:"<p>More than one working woman in four is part-time, <b>three times the rate for men</b>, and 77.5% of part-time employees are women. Asked why, 29.5% of the women say it is to look after children or a relative; 8.3% of the men do.</p>",
        rows:[["Men",8.7,null,1],["Women",26.8]], max:40, unit:"%",
        cap:"Share of people in work who are part-time, France, 2024. INSEE."},
@@ -419,7 +425,7 @@ var DATA = {
     extras:
       '<article class="finding"><h3>The pipe starts overfull</h3>' +
       '<p><b>Six university graduates in ten are women</b>, at licence and at master’s level alike. If supply were the problem, the pipe would run dry at the tap.</p>' +
-      '<p>Women are 56.1% of all students, 48.5% of people in work and 42% of cadres.</p></article>' +
+      '<p>Women are 56.1% of all students, 48.8% of people in work, 50.0% of permanent jobs and 43.4% of cadres.</p></article>' +
       '<article class="finding"><h3>What the leak costs</h3>' +
       '<p>Women in the private sector earn <b>21.8% less</b> than men. Little of that is unequal pay for the same job. Most of it is fewer hours and different, lower-paid jobs: women hold 42% of private-sector posts and 24% of the best-paid 1%.</p>' +
       bars([["All jobs, all hours",21.8],["Equal working time",14.0],["Same job, same site",3.6]], 25, "%") +
@@ -430,10 +436,10 @@ var DATA = {
       '<article class="finding"><h3>The chart France cannot draw</h3>' +
       '<p>Switch to the United States and you can split the pipe by race, because American employers record it. <b>French law tightly restricts collecting data on ethnic origin</b>, so no French survey can show what happens to women of color along the way.</p>' +
       '<p>In the US data their share falls from 21% at entry level to 7% in the C-suite.</p></article>',
-    caveat: "The degree sections count university graduates in 2023, the cadres section covers all of France in 2019, and the last three cover only the 40 largest listed firms in 2025.",
+    caveat: "The degree sections count university graduates in 2023. The permanent-job and cadres sections cover everyone in work in France in 2024, with or without a degree, and their women’s shares are computed from INSEE’s published rates and headcounts. The last three cover only the 40 largest listed firms in 2025.",
     sources:
       '<li><a href="https://www.education.gouv.fr/sites/default/files/document/8-resultats-diplomes-insertonpdf-519297.pdf">Repères et références statistiques 2026 (DEPP/SIES), fiche 8.15</a>: university degrees awarded in 2023 (licence 60.0%, master 61.7%, doctorate 47.1% women). The ministry’s <i>Chiffres clés 2026</i> rounds master’s graduates of 2023–24 to 60%. <a href="https://www.education.gouv.fr/sites/default/files/document/7-les-etudiantspdf-519348.pdf">Fiche 7.14</a>: students by type of school, start of the 2025 academic year.</li>' +
-      '<li><a href="https://www.insee.fr/fr/statistiques/4768237">INSEE Focus n° 205</a>: women’s share of employment (48.5%) and of cadres (42%) in 2019. <a href="https://www.insee.fr/fr/statistiques/8391807">INSEE Première n° 2044</a>: cadres and part-time in 2024. <i>Emploi, chômage, revenus du travail</i>, 2025 edition: <a href="https://www.insee.fr/fr/statistiques/8376846?sommaire=8376908">labour-force rates by number of children</a> and <a href="https://www.insee.fr/fr/statistiques/8376858?sommaire=8376908">reasons for part-time</a> (employees only).</li>' +
+      '<li><a href="https://www.insee.fr/fr/statistiques/8391807">INSEE Première n° 2044</a> and <i>Emploi, chômage, revenus du travail</i>, 2025 edition (<a href="https://www.insee.fr/fr/statistiques/8376824?sommaire=8376908">headcounts</a>, <a href="https://www.insee.fr/fr/statistiques/8376828?sommaire=8376908">contract types</a>): in 2024, 14.2 million women and 14.9 million men were in work; 74.6% of the women and 71.2% of the men held permanent jobs (CDI or civil service), 9.2% and 6.1% fixed-term contracts, 20.4% and 25.4% were cadres, 26.8% and 8.7% part-time. Women’s shares of permanent jobs (50.0%), fixed-term contracts (59.0%) and cadres (43.4%) are computed from these figures. <a href="https://www.insee.fr/fr/statistiques/4768237">INSEE Focus n° 205</a> for the 2019 (42%) and 1982 (21%) shares of cadres. Also in the 2025 edition: <a href="https://www.insee.fr/fr/statistiques/8376846?sommaire=8376908">labour-force rates by number of children</a> and <a href="https://www.insee.fr/fr/statistiques/8376858?sommaire=8376908">reasons for part-time</a> (employees only).</li>' +
       '<li><a href="https://www.insee.fr/fr/statistiques/1281361">INSEE Première n° 1454</a> (2010 survey): 55% of mothers and 12% of fathers stopped or cut back work after a birth. <a href="https://www.insee.fr/fr/statistiques/4226475">Pora and Wilner, INSEE Analyses n° 48</a> (2019): mothers’ pay five years after a birth. <a href="https://evaluation.securite-sociale.fr/home/famille/1-8-1-beneficiaires-de-prestatio.html">REPSS Famille, indicator 1.8.1</a>: PreParE beneficiaries, June 2024. <a href="https://www.insee.fr/fr/statistiques/8743657">INSEE Focus n° 377</a>: pay gap, private sector, 2024.</li>' +
       '<li><a href="https://www.skema.edu/fr/news/cac-40-plus-de-femmes-mais-toujours-pas-au-sommet">SKEMA Observatory of the Feminisation of Companies, 2026 edition</a> (Michel Ferrary), 2025 data for the CAC 40: 28.81% of executive committees, 45.9% of boards, 7.5% of chair and CEO seats. The 37.7% share of managers and engineers is that 28.81% plus the 8.9-point gap the study reports between the management pool and the executive committee.</li>' +
       '<li><a href="https://egapro.travail.gouv.fr/stats">Egapro, Ministère du Travail</a>: Rixain law declarations for 2026 (741 firms with 1,000 or more employees).</li>'
