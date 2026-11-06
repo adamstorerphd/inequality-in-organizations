@@ -378,7 +378,7 @@ var DATA = {
   fr: {
     label: "France",
     title: "France: from the amphithéâtre to the top of the CAC 40",
-    sub: "Women’s share of university degrees awarded in 2023, of permanent jobs and of cadres in 2024, then of managers, executive committees and top seats in CAC 40 firms in 2025.",
+    sub: "Women’s share of university degrees awarded in 2023, of permanent jobs and of cadres in 2024, then of all staff, managers, executive committees and top seats in CAC 40 firms in 2025.",
     hasSplit: false,
     stages: [
       {name:"Bachelor’s degree", sub:"Licence", tag:"Degrees awarded", w:60, src:"RERS 2026 (session 2023)",
@@ -389,12 +389,14 @@ var DATA = {
        note:"Women hold half of France’s permanent jobs: 10.6 million women and 10.6 million men are on a CDI or are civil servants (computed from INSEE 2024: 74.6% of the 14.2 million working women and 71.2% of the 14.9 million working men). Women are 48.8% of everyone in work."},
       {name:"Managers & professionals", sub:"Cadres", w:43.4, src:"INSEE, 2024 (computed)", leak:[["mother","Motherhood"],["parttime","Part-time"]],
        note:"43.4% of cadres are women (computed from INSEE 2024: 20.4% of working women are cadres against 25.4% of working men). INSEE put the share at 42% in 2019 and 21% in 1982."},
-      {name:"Managers & engineers", sub:"Cadres, CAC 40", tag:"CAC 40 firms", w:37.7, src:"SKEMA Observatory 2026", leak:[["field","Degree field"]],
-       note:"37.7% of managers and engineers in CAC 40 firms are women. This is the pool executive committees draw from (SKEMA, 2025 data)."},
+      {name:"All staff", sub:"Effectifs, CAC 40", tag:"CAC 40 firms", w:40.0, src:"SKEMA Observatory 2026", leak:[["field","Degree field"]],
+       note:"On average, 39.99% of the employees of a CAC 40 firm are women (SKEMA, from the firms’ 2025 registration documents). The ten most feminised firms average 60.6% women, the ten least 21.8%: SKEMA calls them the pink ghetto and the blue ghetto."},
+      {name:"Managers & engineers", sub:"Ingénieurs & cadres", w:37.7, src:"SKEMA Observatory 2026",
+       note:"37.71% of the managers and engineers of CAC 40 firms are women, up from 28.12% in 2008. SKEMA treats this group as the pool executive committees are drawn from."},
       {name:"Executive committee", sub:"Comex", w:28.8, src:"SKEMA Observatory 2026", leak:[["ceiling","Glass ceiling"]],
-       note:"28.8% of CAC 40 executive committee members are women (153 of 531), up from 6.3% in 2008."},
+       note:"28.81% of CAC 40 executive committee members are women (153 of 531 seats in 2025), up from 6.3% in 2008. One firm, EssilorLuxottica, has none."},
       {name:"Chair or CEO", sub:"Président·e / DG", w:7.5, src:"SKEMA Observatory 2026", leak:[["quota","No quota"]],
-       note:"Women hold 6 of the 80 chair and CEO seats in the CAC 40: four chief executives and two board chairs."}
+       note:"Women hold 6 of the 80 chair and chief executive seats in the CAC 40 (7.5%, against 6.25% in 2024): 2 of the 26 chairs, 4 of the 26 chief executives, and none of the 14 combined chair-and-CEO posts."}
     ],
     causes: [
       {id:"cdd", where:"Degree → permanent job", title:"Fixed-term contracts",
@@ -410,7 +412,7 @@ var DATA = {
        rows:[["Men",8.7,null,1],["Women",26.8]], max:40, unit:"%",
        cap:"Share of people in work who are part-time, France, 2024. INSEE."},
       {id:"field", where:"Cadres → CAC 40", title:"Degree field",
-       html:"<p>Women are half of business-school students but <b>under a third of engineering students</b>, and the industrial groups of the CAC 40 fill their management ranks with engineers.</p>",
+       html:"<p>Women are half of business-school students but <b>under a third of engineering students</b>, and the industrial groups of the CAC 40 fill their ranks with engineers. Women are 21.8% of staff in the ten most male CAC 40 firms and 60.6% in the ten most female.</p>",
        rows:[["All students",56.1,null,1],["Business schools",51.1],["Doctorates awarded",47.1],["Engineering schools",29.3]], max:70, unit:"%",
        cap:"Women’s share of students, start of the 2025 academic year; doctorates awarded in 2023. RERS 2026."},
       {id:"ceiling", where:"Cadres → comex", title:"The glass ceiling",
@@ -426,6 +428,10 @@ var DATA = {
       '<article class="finding"><h3>The pipe starts overfull</h3>' +
       '<p><b>Six university graduates in ten are women</b>, at licence and at master’s level alike. If supply were the problem, the pipe would run dry at the tap.</p>' +
       '<p>Women are 56.1% of all students, 48.8% of people in work, 50.0% of permanent jobs and 43.4% of cadres.</p></article>' +
+      '<article class="finding"><h3>Pink ghetto, blue ghetto</h3>' +
+      '<p>The CAC 40 average hides two kinds of firm. <b>LVMH, L’Oréal and Kering are around two-thirds women; Vinci, Airbus and Bouygues around one-fifth.</b> SKEMA borrows Charles and Grusky’s term for this horizontal segregation: occupational ghettos, built on who studies what.</p>' +
+      bars([["Ten most feminised firms",60.6],["CAC 40 average",40.0],["Ten least feminised firms",21.8]], 70, "%") +
+      '<p class="cap-t">Women’s share of total staff, CAC 40, 2025. SKEMA Observatory. SKEMA also reports that the ten most feminised firms had an operating margin of 17.8% in 2024 against 8.0% for the ten least, a correlation it does not claim is causal.</p></article>' +
       '<article class="finding"><h3>What the leak costs</h3>' +
       '<p>Women in the private sector earn <b>21.8% less</b> than men. Little of that is unequal pay for the same job. Most of it is fewer hours and different, lower-paid jobs: women hold 42% of private-sector posts and 24% of the best-paid 1%.</p>' +
       bars([["All jobs, all hours",21.8],["Equal working time",14.0],["Same job, same site",3.6]], 25, "%") +
@@ -436,12 +442,12 @@ var DATA = {
       '<article class="finding"><h3>The chart France cannot draw</h3>' +
       '<p>Switch to the United States and you can split the pipe by race, because American employers record it. <b>French law tightly restricts collecting data on ethnic origin</b>, so no French survey can show what happens to women of color along the way.</p>' +
       '<p>In the US data their share falls from 21% at entry level to 7% in the C-suite.</p></article>',
-    caveat: "The degree sections count university graduates in 2023. The permanent-job and cadres sections cover everyone in work in France in 2024, with or without a degree, and their women’s shares are computed from INSEE’s published rates and headcounts. The last three cover only the 40 largest listed firms in 2025.",
+    caveat: "The degree sections count university graduates in 2023. The permanent-job and cadres sections cover everyone in work in France in 2024, with or without a degree, and their women’s shares are computed from INSEE’s published rates and headcounts. The last four cover only the 40 largest listed firms in 2025, from SKEMA’s reading of their registration documents.",
     sources:
       '<li><a href="https://www.education.gouv.fr/sites/default/files/document/8-resultats-diplomes-insertonpdf-519297.pdf">Repères et références statistiques 2026 (DEPP/SIES), fiche 8.15</a>: university degrees awarded in 2023 (licence 60.0%, master 61.7%, doctorate 47.1% women). The ministry’s <i>Chiffres clés 2026</i> rounds master’s graduates of 2023–24 to 60%. <a href="https://www.education.gouv.fr/sites/default/files/document/7-les-etudiantspdf-519348.pdf">Fiche 7.14</a>: students by type of school, start of the 2025 academic year.</li>' +
       '<li><a href="https://www.insee.fr/fr/statistiques/8391807">INSEE Première n° 2044</a> and <i>Emploi, chômage, revenus du travail</i>, 2025 edition (<a href="https://www.insee.fr/fr/statistiques/8376824?sommaire=8376908">headcounts</a>, <a href="https://www.insee.fr/fr/statistiques/8376828?sommaire=8376908">contract types</a>): in 2024, 14.2 million women and 14.9 million men were in work; 74.6% of the women and 71.2% of the men held permanent jobs (CDI or civil service), 9.2% and 6.1% fixed-term contracts, 20.4% and 25.4% were cadres, 26.8% and 8.7% part-time. Women’s shares of permanent jobs (50.0%), fixed-term contracts (59.0%) and cadres (43.4%) are computed from these figures. <a href="https://www.insee.fr/fr/statistiques/4768237">INSEE Focus n° 205</a> for the 2019 (42%) and 1982 (21%) shares of cadres. Also in the 2025 edition: <a href="https://www.insee.fr/fr/statistiques/8376846?sommaire=8376908">labour-force rates by number of children</a> and <a href="https://www.insee.fr/fr/statistiques/8376858?sommaire=8376908">reasons for part-time</a> (employees only).</li>' +
       '<li><a href="https://www.insee.fr/fr/statistiques/1281361">INSEE Première n° 1454</a> (2010 survey): 55% of mothers and 12% of fathers stopped or cut back work after a birth. <a href="https://www.insee.fr/fr/statistiques/4226475">Pora and Wilner, INSEE Analyses n° 48</a> (2019): mothers’ pay five years after a birth. <a href="https://evaluation.securite-sociale.fr/home/famille/1-8-1-beneficiaires-de-prestatio.html">REPSS Famille, indicator 1.8.1</a>: PreParE beneficiaries, June 2024. <a href="https://www.insee.fr/fr/statistiques/8743657">INSEE Focus n° 377</a>: pay gap, private sector, 2024.</li>' +
-      '<li><a href="https://www.skema.edu/fr/news/cac-40-plus-de-femmes-mais-toujours-pas-au-sommet">SKEMA Observatory of the Feminisation of Companies, 2026 edition</a> (Michel Ferrary), 2025 data for the CAC 40: 28.81% of executive committees, 45.9% of boards, 7.5% of chair and CEO seats. The 37.7% share of managers and engineers is that 28.81% plus the 8.9-point gap the study reports between the management pool and the executive committee.</li>' +
+      '<li><a href="https://www.skema.edu/fr/news/cac-40-plus-de-femmes-mais-toujours-pas-au-sommet">Observatoire SKEMA de la féminisation des entreprises, 2026 edition</a> (Michel Ferrary), pp. 12, 13 and 18, from the 2025 universal registration documents of the 40 firms: women are 39.99% of total staff, 37.71% of engineers and managers, 28.81% of executive-committee members (153 of 531), 45.94% of directors (255 of 555) and hold 6 of the 80 chair and CEO posts. The glass ceiling (pool minus comex) is 8.9 points, against 21.82 in 2008.</li>' +
       '<li><a href="https://egapro.travail.gouv.fr/stats">Egapro, Ministère du Travail</a>: Rixain law declarations for 2026 (741 firms with 1,000 or more employees).</li>'
   }
 ,
