@@ -499,49 +499,56 @@ var DATA = {
   cn: {
     label: "China",
     title: "China: from the campus to the chairman’s office",
-    sub: "Women’s share of students and of the employed in 2024, then of executives of listed companies in 2021 and of chief executives of the 512 Chinese companies in a global stock index in 2024.",
+    sub: "Women’s share of students in 2024, of staff at each level of Chinese companies in 2021, and of chief executives of the 512 Chinese companies in a global stock index in 2024.",
     hasSplit: false,
     stages: [
       {name:"Undergraduates", sub:"本专科在校生", tag:"Students, 2024", w:49.9, src:"NBS 2024",
        note:"19.4 million women were enrolled in regular undergraduate and junior-college programmes in 2024, 49.9% of the total (NBS). Across all higher education, 50.8%."},
       {name:"Postgraduates", sub:"研究生", w:50.0, src:"NBS 2024",
        note:"2.05 million women were master’s or doctoral students in 2024, 50.0% of the total (NBS, which does not split the two levels)."},
-      {name:"Employed persons", sub:"就业人员", tag:"All of China", w:43.4, src:"NBS 2024", leak:[["unpaid","Unpaid work"]],
-       note:"320 million women were employed at the end of 2024, 43.4% of all employed persons (NBS). ILO modelled estimates put labour force participation at 59% of women and 70% of men."},
-      {name:"Urban formal employers", sub:"城镇非私营单位", w:41.7, src:"NBS 2024", leak:[["ads","Hiring ads"]],
-       note:"68.9 million women, 41.7% of the employees of urban non-private units (state-owned, collective, foreign-invested and listed employers) in 2024 (NBS)."},
-      {name:"Executives", sub:"高管", tag:"Listed companies", w:19, src:"Bain & Spencer Stuart 2023", leak:[["promo","Promotion"]],
-       note:"19% of the executives of Chinese listed companies were women at the end of 2021 (Bain & Company and Spencer Stuart, from S&P Capital IQ data), against 24% in the United States and 26% in the United Kingdom."},
+      {name:"Staff", sub:"普通员工", tag:"Companies, 2021", w:50, src:"Bain & Spencer Stuart 2023 (approx.)", leak:[["ads","Hiring ads"]],
+       note:"About 50% of rank-and-file employees are women (Bain & Company and Spencer Stuart, 2021, a composite of LinkedIn, Zhaopin, NBS, Wind and Capital IQ data; the report marks its level figures as approximate). Nationally, women are 43.4% of all employed persons and 41.7% of staff at urban formal employers (NBS, 2024)."},
+      {name:"Junior managers", sub:"初级管理层", w:37, src:"Bain & Spencer Stuart 2023 (approx.)", leak:[["unpaid","Unpaid work"]],
+       note:"About 37% of junior managers are women (Bain & Spencer Stuart, 2021). The comparable figures the report gives are 38% in the United States, 36% in the United Kingdom and 40% in Australia."},
+      {name:"Middle managers", sub:"中级管理层", w:33, src:"Bain & Spencer Stuart 2023 (approx.)", leak:[["promo","Promotion"]],
+       note:"About 33% of middle managers are women (Bain & Spencer Stuart, 2021), in line with the United States (29%), the United Kingdom (28%) and Australia (34%). The report’s point: China keeps pace up to here."},
+      {name:"Senior managers", sub:"高级管理层", w:19, src:"Bain & Spencer Stuart 2023 (approx.)", leak:[["family","Family duties"]],
+       note:"About 19% of senior executives are women (Bain & Spencer Stuart, 2021), a 14-point drop from middle management, against drops of 5 points in the United States, 2 in the United Kingdom and 7 in Australia. Capital IQ data on listed companies put the share at 19% as of 31 December 2021."},
       {name:"CEO", tag:"MSCI index, 2024", w:6.4, src:"MSCI 2024", leak:[["quota","No quota"]],
        note:"6.4% of the 512 Chinese companies in the MSCI ACWI index had a woman chief executive in 2024; 8.4% had a woman chair; women held 15.8% of board seats."}
     ],
     causes: [
-      {id:"unpaid", where:"Degree → work", title:"Unpaid work",
+      {id:"ads", where:"Degree → first job", title:"Hiring ads",
+       html:"<p>Human Rights Watch read 36,000 job advertisements in 2017 and 2018. In the national civil service, <b>19% of 2018 postings stated a requirement or preference for men</b>, up from 13% in 2017. It also found ‘men only’ or ‘men preferred’ wording in postings by Alibaba, Tencent and Baidu. In Zhaopin’s 2026 survey, 32.4% of women had seen a posting hinting that the job suited men.</p>",
+       rows:[["2017 civil-service postings",13],["2018 civil-service postings",19]], max:30, unit:"%",
+       cap:"Share of national civil-service job postings requiring or preferring men. Human Rights Watch, Only Men Need Apply, 2018."},
+      {id:"unpaid", where:"Staff → junior managers", title:"Unpaid work",
        html:"<p>Chinese women do <b>almost twice the unpaid work of men</b>: 3 h 29 min a day against 1 h 52 min for those who do any. The child penalty on employment is small by world standards, about 4% (Kleven and co-authors, from the 2005 mini-census), so the leak is not mothers leaving work but what they carry while they stay.</p>",
        rows:[["Men: unpaid work",112,null,1],["Women: unpaid work",209],["Men: paid work",404,null,1],["Women: paid work",355]], max:420, unit:" min",
        cap:"Minutes per day per participant, averaged over the week. Third national Time Use Survey, 2024, NBS."},
-      {id:"ads", where:"Work → formal employers", title:"Hiring ads",
-       html:"<p>Human Rights Watch read 36,000 job advertisements in 2017 and 2018. In the national civil service, <b>19% of 2018 postings stated a requirement or preference for men</b>, up from 13% in 2017. It also found ‘men only’ or ‘men preferred’ wording in postings by Alibaba, Tencent and Baidu.</p>",
-       rows:[["2017 civil-service postings",13],["2018 civil-service postings",19]], max:30, unit:"%",
-       cap:"Share of national civil-service job postings requiring or preferring men. Human Rights Watch, Only Men Need Apply, 2018."},
-      {id:"promo", where:"Formal employers → executives", title:"Promotion",
+      {id:"promo", where:"Junior → middle managers", title:"Promotion",
        html:"<p>In Zhaopin’s 2026 survey of 3,857 jobseekers, <b>60.9% of women had been asked about marriage and children</b> when applying, against 35.5% of men. 12.6% of women said gender discrimination had cost them a promotion; 3.4% of men said so. These are self-reports from an online survey, reported by the press.</p>",
        rows:[["Men asked about marriage, children",35.5,null,1],["Women asked",60.9],["Men: discrimination hurt promotion",3.4,null,1],["Women: discrimination hurt promotion",12.6]], max:70, unit:"%",
        cap:"Zhaopin, China women in the workplace survey 2026, as reported by Tide News and Sohu."},
-      {id:"quota", where:"Executives → CEO", title:"No quota at the top",
+      {id:"family", where:"Middle → senior managers", title:"Family duties",
+       html:"<p>Bain and Spencer Stuart surveyed and interviewed Chinese women executives and candidates. <b>83% said carrying more of the family’s responsibilities kept them from committing fully to work</b>, 68% said their family did not understand their career ambitions, and more than 70% said the lack of childcare support at their employer had held back their careers. The report calls this the first of four barriers, with caution, exclusion from male networks and prior bias.</p>",
+       rows:[["Family duties limit commitment",83],["Family does not understand ambitions",68],["No employer childcare support",70]], max:100, unit:"%",
+       cap:"Share of women respondents, Bain & Company and Spencer Stuart survey, 2022–23. The report does not state the sample size."},
+      {id:"quota", where:"Senior managers → CEO", title:"No quota at the top",
        html:"<p>China has no board gender quota. Of the 512 Chinese companies in the MSCI index, <b>19.3% have no woman on the board at all</b>. Compare France, where boards reached 45.9% women under a 40% quota.</p>",
        rows:[["Board seats",15.8],["Chairs",8.4],["Chief executives",6.4]], max:50, unit:"%",
        cap:"Chinese constituents of the MSCI ACWI index, October 2024. MSCI, Women on Boards and Beyond. Deloitte puts board seats at 15.1% on a wider sample."}
     ],
     extras:
       '<article class="finding"><h3>The pipe starts at parity</h3>' +
-      '<p><b>Half of China’s students are women, at every level.</b> They are 43% of the employed and 42% of staff at formal urban employers. The share falls by half between the formal workforce and the executive floor, and by two thirds again between there and the chief executive’s chair.</p></article>' +
+      '<p><b>Half of China’s students are women, at every level</b>, and 62% of Chinese women are in the labour force, one of the highest rates in the world (Bain, from World Bank data; the global average is 46%). Women are 43.4% of all employed persons and 41.7% of staff at urban formal employers (NBS, 2024).</p>' +
+      '<p>Up to middle management, China keeps pace with the United States, the United Kingdom and Australia. The leak is the last two steps.</p></article>' +
       '<article class="finding"><h3>A small child penalty, a large leak</h3>' +
       '<p>The Child Penalty Atlas finds that a first child cuts Chinese women’s employment by about 4% relative to men, against 25% in the United States and 26% in France. <b>Chinese women stay in work after children; they do not reach the top.</b> The 2005 data predate the end of the one-child policy.</p></article>',
-    caveat: "The first four sections are national statistics for 2024. The executive section is listed companies at the end of 2021, from a consultancy report. The CEO section is the 512 Chinese companies in a global stock index in 2024, not all listed firms.",
+    caveat: "The first two sections are national statistics for 2024. The four company levels come from a 2023 consultancy report that marks them as approximate, built from LinkedIn, Zhaopin, NBS, Wind and Capital IQ data for 2021. The CEO section is the 512 Chinese companies in a global stock index in 2024, not all listed firms.",
     sources:
-      '<li><a href="https://www.stats.gov.cn/sj/zxfb/202512/t20251230_1962183.html">National Bureau of Statistics, 2024 monitoring report on the Outline for Women’s Development (2021–2030)</a> (in Chinese; <a href="https://www.stats.gov.cn/english/PressRelease/202502/t20250207_1958577.html">2023 edition in English</a>): students, employed persons, urban non-private units. <a href="https://www.stats.gov.cn/sj/zxfb/202410/t20241031_1957215.html">Third national Time Use Survey, bulletin 3</a> (2024): paid and unpaid work. Labour force participation: ILO modelled estimates via the World Bank (indicators SL.TLF.CACT.FE.ZS and MA.ZS).</li>' +
-      '<li><a href="https://www.bain.cn/pdfs/202303070235066586.pdf">Bain &amp; Company and Spencer Stuart, 女性领导力崛起 (The rise of women’s leadership), March 2023</a>: 19% of executives, end of 2021, S&amp;P Capital IQ data.</li>' +
+      '<li><a href="https://www.stats.gov.cn/sj/zxfb/202512/t20251230_1962183.html">National Bureau of Statistics, 2024 monitoring report on the Outline for Women’s Development (2021–2030)</a> (in Chinese; <a href="https://www.stats.gov.cn/english/PressRelease/202502/t20250207_1958577.html">2023 edition in English</a>): students, employed persons, urban non-private units. <a href="https://www.stats.gov.cn/sj/zxfb/202410/t20241031_1957215.html">Third national Time Use Survey, bulletin 3</a> (2024): paid and unpaid work.</li>' +
+      '<li><a href="https://www.bain.cn/pdfs/202303070235066586.pdf">Bain &amp; Company and Spencer Stuart, 女性领导力崛起 (The rise of women’s leadership), March 2023</a>, figures 2 and 3: women’s share by level in China, the United States, the United Kingdom and Australia, 2021, marked approximate (sources listed as World Bank, WGEA, LinkedIn, NBS, Zhaopin, Wind, Capital IQ); 19% of executives of listed companies from S&amp;P Capital IQ at 31 December 2021; survey findings on family responsibilities.</li>' +
       '<li><a href="https://www.msci.com/downloads/web/msci-com/research-and-insights/Research-Reports/women-on-boards-and-beyond/Women%20on%20Boards%20and%20Beyond%20-%202024%20-%20Progress%20Report.pdf">MSCI, <i>Women on Boards and Beyond: 2024 Progress Report</i></a>, appendices 2 to 5: China constituents of the MSCI ACWI index. <a href="https://www.deloitte.com/content/dam/assets-zone1/kr/legacy-assets/docs/center-for-corporate-governance/202403-women-in-the-boardroom-8th-edition-wib.pdf">Deloitte, <i>Women in the boardroom</i>, 8th edition</a>: 15.1%.</li>' +
       '<li><a href="https://www.hrw.org/report/2018/04/23/only-men-need-apply/gender-discrimination-job-advertisements-china">Human Rights Watch, <i>Only Men Need Apply</i>, April 2018</a>. <a href="https://www.nber.org/system/files/working_papers/w31649/w31649.pdf">Kleven, Landais and Leite-Mariante, <i>The Child Penalty Atlas</i></a> (NBER working paper 31649): China 0.041. Zhaopin 2026 survey (3,857 respondents) as reported by <a href="https://tidenews.com.cn/news.html?id=3388716">Tide News</a> and <a href="https://m.sohu.com/a/993125309_121778725">Sohu</a>.</li>'
   }
