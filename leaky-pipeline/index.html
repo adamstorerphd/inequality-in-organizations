@@ -558,6 +558,61 @@ var DATA = {
       '<li><a href="https://www.msci.com/downloads/web/msci-com/research-and-insights/Research-Reports/women-on-boards-and-beyond/Women%20on%20Boards%20and%20Beyond%20-%202024%20-%20Progress%20Report.pdf">MSCI, <i>Women on Boards and Beyond: 2024 Progress Report</i></a>, appendices 2 to 5: China constituents of the MSCI ACWI index. <a href="https://www.deloitte.com/content/dam/assets-zone1/kr/legacy-assets/docs/center-for-corporate-governance/202403-women-in-the-boardroom-8th-edition-wib.pdf">Deloitte, <i>Women in the boardroom</i>, 8th edition</a>: 15.1%.</li>' +
       '<li><a href="https://www.hrw.org/report/2018/04/23/only-men-need-apply/gender-discrimination-job-advertisements-china">Human Rights Watch, <i>Only Men Need Apply</i>, April 2018</a>. <a href="https://www.nber.org/system/files/working_papers/w31649/w31649.pdf">Kleven, Landais and Leite-Mariante, <i>The Child Penalty Atlas</i></a> (NBER working paper 31649): China 0.041. Zhaopin 2026 survey (3,857 respondents) as reported by <a href="https://tidenews.com.cn/news.html?id=3388716">Tide News</a> and <a href="https://m.sohu.com/a/993125309_121778725">Sohu</a>.</li>'
   }
+,
+  fi: {
+    label: "Finland",
+    title: "Finland: from the university to the Helsinki stock exchange",
+    sub: "Women’s share of degrees completed and of the employed in 2025, of managers in 2024, then of executive teams and chief executives of companies listed in Helsinki in December 2025.",
+    hasSplit: false,
+    stages: [
+      {name:"Bachelor’s degree", sub:"Kandidaatti", tag:"Degrees, 2025", w:59.8, src:"Statistics Finland 2025 (computed)",
+       note:"Women completed 9,775 of the 16,349 university bachelor’s degrees in 2025, 59.8% (Statistics Finland). At universities of applied sciences the share was 61.9% (18,200 of 29,397)."},
+      {name:"Master’s degree", sub:"Maisteri", w:60.3, src:"Statistics Finland 2025 (computed)",
+       note:"Women completed 12,442 of the 20,629 university master’s degrees in 2025, 60.3%, and 52.3% of doctorates (1,115 of 2,131). At universities of applied sciences, 69.9% of master’s degrees."},
+      {name:"Employed persons", sub:"Työlliset", tag:"All of Finland", w:48.5, src:"Statistics Finland LFS 2025 (computed)", leak:[["field","Degree field"]],
+       note:"1,255,000 of Finland’s 2,590,000 employed people aged 15 to 74 were women in 2025, 48.5%. The employment rate of women aged 15 to 64 is 71.3%, against 71.5% for men: Finnish women work as much as Finnish men."},
+      {name:"Managers", sub:"Johtajat", w:34.9, src:"Statistics Finland 2024", leak:[["leave","Family leave"]],
+       note:"34.9% of the 85,440 people working as managers (ISCO major group 1, including owner-managers) in 2024 were women (Statistics Finland employment statistics). Among wage-earning managers alone the Labour Force Survey puts the share at 41% in 2025, up from 33% in 2013."},
+      {name:"Executive team", sub:"Johtoryhmä", tag:"Listed companies", w:28, src:"Finland Chamber of Commerce, Dec 2025", leak:[["line","Line roles"],["parttime","Part-time"]],
+       note:"271 of the 959 chief executives and executive-team members of the 132 companies listed on Nasdaq Helsinki were women in December 2025, 28% (Finland Chamber of Commerce). Without the chief executives, 31%; among the heads of business lines, 16%."},
+      {name:"CEO", sub:"Toimitusjohtaja", w:8, src:"Finland Chamber of Commerce, Dec 2025", leak:[["quota","No quota"]],
+       note:"11 of the 132 listed companies had a woman chief executive in December 2025, 8%, down from 10% in 2024: two large caps, six mid caps and three small caps. Boards do far better: 37% women in June 2026, with 11% of chairs."}
+    ],
+    causes: [
+      {id:"field", where:"Degree → work", title:"Degree field",
+       html:"<p>Finland has one of Europe’s most segregated labour markets. Women are <b>87% of health and nursing associate professionals and 29% of science and engineering professionals</b>. In 2023, 21.3% of employees still worked in an occupation that is more than 90% one sex, down from 30.1% in 2019.</p>",
+       rows:[["All master’s degrees",60.3,null,1],["Business, administration, law",58.2],["Engineering & construction",34.8],["ICT",31.3],["Health & welfare (UAS bachelor)",86.6]], max:100, unit:"%",
+       cap:"Women’s share of degrees completed by field, 2025 (university master’s unless stated). Statistics Finland, Students and qualifications."},
+      {id:"leave", where:"Work → managers", title:"Family leave",
+       html:"<p>Finland’s 2022 reform gave each parent an equal quota of leave, and fathers’ share of paid parental-leave days has risen from <b>12% in 2022 to 22.5% in 2025</b>. The home-care allowance that follows, paid until the child is three, still goes 92% to mothers. The Child Penalty Atlas puts the employment penalty of a first child for Finnish women at 43 on its 0-to-100 scale, far above Denmark or Sweden.</p>",
+       rows:[["Mothers’ share of parental-leave days",77.5,null,1],["Fathers’ share",22.5],["Women among home-care allowance recipients",92,null,1],["Men",8]], max:100, unit:"%",
+       cap:"Kela (the Social Insurance Institution), 2025. The Atlas figure is its headline employment penalty for Finland, from LIS data 1995–2016."},
+      {id:"line", where:"Managers → executive team", title:"Line roles",
+       html:"<p>Women sit on executive teams mostly in staff functions. They are <b>31% of executive-team members but 16% of the people running a business line</b>, the roles with profit-and-loss responsibility that lead to the chief executive’s chair.</p>",
+       rows:[["Executive-team members (excl. CEO)",31],["Heads of business lines",16],["Chief executives",8]], max:40, unit:"%",
+       cap:"Companies listed on Nasdaq Helsinki, December 2025. Finland Chamber of Commerce, Naisjohtajakatsaus 03/2025."},
+      {id:"parttime", where:"Managers → executive team", title:"Part-time",
+       html:"<p>Part-time work is less common in Finland than in France, but still <b>women are 24% part-time against 14% of men</b>. Finnish women earn 16.3% less per hour than men, against an EU average gap of 11.1%.</p>",
+       rows:[["Men part-time",14.1,null,1],["Women part-time",24.3]], max:40, unit:"%",
+       cap:"Share of employed people aged 15 to 74 working part-time, 2025. Statistics Finland Labour Force Survey. Pay gap: Eurostat unadjusted gender pay gap, 2024."},
+      {id:"quota", where:"Executive team → CEO", title:"Recommendation, not law",
+       html:"<p>Finland has no board quota. Its Corporate Governance Code recommends that each sex hold at least 40% of board seats by mid-2026, and large caps got there: <b>42% women, 37% across all listed companies</b>, but 11% of chairs and 8% of chief executives. The state asks the same 40% of the companies it owns, whose boards are 46% women and whose chief executives are 24% women.</p>",
+       rows:[["Board seats, listed companies",37,40],["Executive teams",28],["Board chairs",11],["Chief executives",8]], max:50, unit:"%",
+       cap:"Nasdaq Helsinki companies: boards June 2026, executives December 2025. Finland Chamber of Commerce. Tick = the Governance Code’s 40% recommendation. State-owned companies: Prime Minister’s Office, 2023."}
+    ],
+    extras:
+      '<article class="finding"><h3>Equal at work, not at the top</h3>' +
+      '<p>Finnish women are 60% of graduates, 48.5% of the employed and work at the same rate as men (71.3% against 71.5% of 15-to-64-year-olds). <b>Then they are 35% of managers, 28% of executive teams and 8% of chief executives.</b> A country can close the participation gap and keep the leadership gap.</p></article>' +
+      '<article class="finding"><h3>The state as owner</h3>' +
+      '<p>Where the state owns the company, the numbers move. <b>Boards of state-owned companies are 46% women, chairs 28%, chief executives 24%</b>, against 37%, 11% and 8% in listed companies. The state applies a 40% rule to itself as a shareholder.</p>' +
+      bars([["State-owned: boards",46],["Listed: boards",37],["State-owned: CEOs",24],["Listed: CEOs",8]], 50, "%") +
+      '<p class="cap-t">State-owned companies at end-2023 (Prime Minister’s Office); listed companies 2025–26 (Finland Chamber of Commerce).</p></article>',
+    caveat: "The degree sections count qualifications completed in 2025. The employed and manager sections are national statistics (2025 and 2024). The executive and CEO sections are the 132 companies listed on Nasdaq Helsinki in December 2025. Women’s shares of degrees and of the employed are computed from Statistics Finland’s published counts.",
+    sources:
+      '<li><a href="https://pxdata.stat.fi/PxWeb/pxweb/en/StatFin/StatFin__opiskt/statfin_opiskt_pxt_13sp.px">Statistics Finland, Students and qualifications, table 13sp</a>: qualifications completed by sex, level and field, 2025. <a href="https://pxdata.stat.fi/PxWeb/pxweb/en/StatFin/StatFin__tyti/statfin_tyti_pxt_13ap.px">Labour Force Survey tables 13ap</a>, <a href="https://pxdata.stat.fi/PxWeb/pxweb/en/StatFin/StatFin__tyti/statfin_tyti_pxt_13aj.px">13aj</a>, <a href="https://pxdata.stat.fi/PxWeb/pxweb/en/StatFin/StatFin__tyti/statfin_tyti_pxt_13aw.px">13aw</a> and <a href="https://pxdata.stat.fi/PxWeb/pxweb/en/StatFin/StatFin__tyti/statfin_tyti_pxt_13au.px">13au</a>: employed persons, employment rates, part-time work and occupations by sex, 2025. <a href="https://pxdata.stat.fi/PxWeb/pxweb/en/StatFin/StatFin__tyokay/statfin_tyokay_pxt_115q.px">Employment statistics table 115q</a>: managers by sex, 2024. <a href="https://stat.fi/fi/uutinen/Yhae-harvempi-tyoeskentelee-selkeissae-miesten-tai-naisten-ammateissa-johtajista-jo-41-naisia">Statistics Finland news, March 2026</a>: 41% of wage-earning managers; segregated occupations.</li>' +
+      '<li><a href="https://kauppakamari.fi/wp-content/uploads/2025/12/Naisjohtajakatsaus_03-2025.pdf">Finland Chamber of Commerce, Naisjohtajakatsaus 03/2025</a>: chief executives, executive teams and business-line heads of listed companies, December 2025. <a href="https://kauppakamari.fi/wp-content/uploads/2026/07/Naisjohtajakatsaus_02-2026.pdf">Naisjohtajakatsaus 02/2026</a>: boards and chairs, June 2026, and the Governance Code recommendation. <a href="https://valtioneuvosto.fi/-/yhtioomistuksista-omaisuustuloja-valtiolle-1-6-miljardia-euroa">Prime Minister’s Office, April 2024</a>: state-owned companies at end-2023.</li>' +
+      '<li><a href="https://www.kela.fi/tietotarjotin/1397484-isat-kayttivat-lahes-neljasosan-vanhempainvapaista-vuonna-2025">Kela, May 2026</a>: fathers’ share of parental-allowance days, 2025; <a href="https://www.kela.fi/tietotarjotin/1168680-isat-kayttivat-jo-yli-viidenneksen-vanhempainpaivarahapaivista-vuonna-2024">February 2025</a> for 2022 and 2024; <a href="https://www.kela.fi/tietotarjotin/1359979-kotihoidon-tuen-saajamaara-on-lahes-puolittunut-kymmenessa-vuodessa">March 2026</a>: home-care allowance recipients by sex. <a href="https://www.childpenaltyatlas.org/">Child Penalty Atlas</a> (Kleven, Landais and Leite-Mariante), data export: Finland 43. <a href="https://ec.europa.eu/eurostat/databrowser/view/sdg_05_20/default/table">Eurostat, unadjusted gender pay gap</a>: Finland 16.3%, EU 11.1%, 2024.</li>'
+  }
 };
 
 var $ = function(s){ return document.querySelector(s); };
