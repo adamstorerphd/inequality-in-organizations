@@ -71,6 +71,36 @@ h2{font-family:var(--display);font-weight:700;font-size:28px;line-height:1.05;te
 .note{font-size:13.5px;color:var(--ink-2);max-width:80ch}
 .none{padding:18px;border:1px dashed var(--rule);border-radius:4px;color:var(--ink-2)}
 
+/* guessing game */
+.game{display:grid;grid-template-columns:86px 1fr;gap:0 12px;align-items:center}
+.game .lab{font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);line-height:1.2}
+.gbar{position:relative;height:56px;border-radius:4px;touch-action:none;user-select:none;-webkit-user-select:none}
+.gbar .seg{position:absolute;top:0;bottom:0;display:flex;align-items:center;justify-content:center;font:600 13px var(--mono);color:#fff;overflow:hidden;white-space:nowrap}
+.gbar .seg.g50,.gbar .seg.gna{color:var(--ink)}
+.gbar .seg:first-child{border-radius:4px 0 0 4px}.gbar .seg:last-of-type{border-radius:0 4px 4px 0}
+.guess .seg{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.22) 0 5px,transparent 5px 10px)}
+.handle{position:absolute;top:-8px;bottom:-8px;width:28px;margin-left:-14px;border:0;padding:0;background:none;cursor:ew-resize;z-index:3;touch-action:none}
+.handle::before{content:"";position:absolute;left:12px;top:0;bottom:0;width:4px;border-radius:2px;background:var(--ink)}
+.handle::after{content:"";position:absolute;left:5px;top:50%;width:18px;height:26px;margin-top:-13px;border-radius:5px;background:var(--panel);border:2px solid var(--ink)}
+.handle:focus-visible::after{outline:3px solid var(--us);outline-offset:2px}
+.revealed .handle{display:none}
+.actual .seg{transition:left .9s cubic-bezier(.3,.7,.2,1),width .9s cubic-bezier(.3,.7,.2,1)}
+.actualrow{transition:opacity .3s}
+.btns{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{font:600 15px var(--body);border-radius:999px;padding:10px 20px;cursor:pointer;border:2px solid var(--ink);background:var(--panel);color:var(--ink)}
+.btn.primary{background:var(--ink);color:var(--paper)}
+.btn:disabled{opacity:.45;cursor:default}
+.prompt{font-size:14.5px;color:var(--ink-2);max-width:72ch}
+.score{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.score div{border-left:6px solid;padding:2px 0 2px 10px}
+.score b{font:600 13px var(--mono);text-transform:uppercase;letter-spacing:.04em;display:block}
+.score .nums{font:500 15px var(--mono);display:block;margin-top:2px}
+.score .nums em{font-style:normal;color:var(--ink-3)}
+.score .diff{font-size:13.5px;color:var(--ink-2)}
+.done-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--g1);margin-left:6px;vertical-align:middle}
+.gate{display:flex;flex-direction:row;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between}
+.gate p{color:var(--ink-2);max-width:60ch}
+
 /* comparison */
 .cmp{display:grid;grid-template-columns:110px 1fr;gap:10px 14px;align-items:center}
 .cmp .name{font-weight:600}
@@ -109,30 +139,38 @@ tr.grp td{font-weight:600;background:var(--paper);text-align:left}
 <header>
   <p class="eyebrow">Inequality in Organizations · Wealth</p>
   <h1>Who owns the wealth?</h1>
-  <p class="lede">Line everyone in a country up from poorest to richest. How much of the country’s total private wealth (homes, land, savings, shares and businesses, minus debts) does each group own? Estimates for the United States, India, China and Finland.</p>
+  <p class="lede">Line everyone in a country up from poorest to richest. How much of the country’s private wealth (homes, land, savings, shares and businesses, minus debts) does each group own? Make your guess, then reveal the estimate.</p>
 </header>
 
-<section class="card" aria-labelledby="h-pw">
+<section class="card" aria-labelledby="h-game">
   <div>
-    <h2 id="h-pw">Share of people vs share of wealth</h2>
-    <p class="sub">The top bar is the population. The bottom bar is the wealth that group owns. If wealth were shared equally the two bars would line up.</p>
+    <h2 id="h-game">Split the wealth</h2>
+    <p class="sub">The top bar is the people. The bar under it is your guess at how the country’s wealth is split between them. It starts out equal: each group owns the same share as its share of people.</p>
   </div>
-  <div class="controls">
-    <div class="switch" role="radiogroup" aria-label="Country" id="country"></div>
-    <div class="switch small" role="radiogroup" aria-label="Data source" id="source"></div>
+  <div class="switch" role="radiogroup" aria-label="Country" id="country"></div>
+  <div class="game" id="game">
+    <span class="lab">People</span><div class="gbar" id="popbar"></div>
+    <span></span><svg class="links" id="links" viewBox="0 0 1000 64" preserveAspectRatio="none" aria-hidden="true"></svg>
+    <span class="lab">Your guess</span><div class="gbar guess" id="guessbar"></div>
+    <span class="actualrow" style="height:14px"></span><span class="actualrow" style="height:14px"></span>
+    <span class="lab actualrow" id="actlab">Actual</span><div class="gbar actual actualrow" id="actbar"></div>
   </div>
-  <div id="pwbox">
-    <div class="pw">
-      <span class="lab">People</span><div class="bar" id="popbar"></div>
-      <span></span><svg class="links" id="links" viewBox="0 0 1000 64" preserveAspectRatio="none" aria-hidden="true"></svg>
-      <span class="lab">Wealth</span><div class="bar" id="wbar"></div>
-    </div>
+  <p class="prompt" id="prompt"></p>
+  <div class="btns">
+    <button type="button" class="btn primary" id="reveal">Reveal the estimate</button>
+    <button type="button" class="btn" id="again">Guess again</button>
   </div>
-  <div class="none" id="nodata" hidden></div>
   <p class="headline" id="headline" aria-live="polite"></p>
-  <div class="key" id="key"></div>
+  <div class="score" id="score"></div>
   <p class="note" id="srcnote"></p>
 </section>
+
+<section class="card gate" id="gate">
+  <p>Below are all four countries side by side, the trend since 1995, and the official national figures. They give the answers away, so guess first.</p>
+  <button type="button" class="btn" id="showall">Show the full data</button>
+</section>
+
+<div id="spoilers" hidden style="display:flex;flex-direction:column;gap:28px">
 
 <section class="card" aria-labelledby="h-cmp">
   <div>
@@ -197,6 +235,7 @@ tr.grp td{font-weight:600;background:var(--paper);text-align:left}
     <div><h3>Surveys miss the top</h3><p>The very rich rarely answer surveys and under-report when they do. Estimates that add tax data and rich lists (WID) usually show a larger top share than survey-only figures. That is one reason Finland’s top 10% is 55.5% in WID and 51.8% in the official survey.</p></div>
   </div>
 </section>
+</div>
 
 <section class="card" aria-labelledby="h-src">
   <h2 id="h-src">Sources</h2>
@@ -213,70 +252,115 @@ tr.grp td{font-weight:600;background:var(--paper);text-align:left}
 
 </main>
 <script>
-const POP = {g50:50,g40:40,g9:9,g1:1};
 const NAMES = {US:'United States',IN:'India',CN:'China',FI:'Finland'};
-// Each dataset: list of groups {cls, label, pop, w}
+// groups: [cls, label, share of people, share of wealth]
 const DATA = {
-  wid:{
-    US:{year:'2024',groups:[['g50','Poorest 50%',50,1.0],['g40','Middle 40%',40,29.5],['g9','Next 9%',9,34.8],['g1','Richest 1%',1,34.8]],
-        note:'World Inequality Report 2026, United States country sheet (2024). Adults, wealth split equally between partners.'},
-    IN:{year:'2024',groups:[['g50','Poorest 50%',50,6.4],['g40','Middle 40%',40,28.6],['g9','Next 9%',9,24.9],['g1','Richest 1%',1,40.1]],
-        note:'World Inequality Report 2026, India country sheet (2024). Built from surveys, tax data and billionaire lists (Bharti, Chancel, Piketty & Somanchi 2024).'},
-    CN:{year:'2024',groups:[['g50','Poorest 50%',50,6.3],['g40','Middle 40%',40,25.8],['g9','Next 9%',9,37.7],['g1','Richest 1%',1,30.2]],
-        note:'World Inequality Report 2026, China country sheet (2024). Built on Piketty, Yang & Zucman (2019).'},
-    FI:{year:'2024',groups:[['gna','Poorest 90%',90,44.5],['g9','Next 9%',9,37.5],['g1','Richest 1%',1,18.0]],
-        note:'World Inequality Database via Our World in Data (2024): top 10% 55.5%, top 1% 18.0%. WID publishes no country sheet for Finland, so the poorest 90% are not split here; switch to “Official” for the full breakdown.'}
-  },
-  off:{
-    US:{year:'2026 Q2',groups:[['g50','Poorest 50%',50,2.3],['g40','Middle 40%',40,28.8],['g9','Next 9%',9,36.4],['g1','Richest 1%',1,32.5]],
-        note:'Federal Reserve, Distributional Financial Accounts, 2026 Q2. Households. Total household net worth: $185.7 trillion. The richest 0.1% alone own 15.0%.'},
-    FI:{year:'2023',groups:[['g50','Poorest 50%',50,4.2],['g40','Middle 40%',40,44.0],['g9','Next 5% (91st–95th)',5,14.6],['g1','Richest 5%',5,37.2]],
-        note:'Statistics Finland, Households’ assets 2023, table 152a. Households. The official survey splits the top 10% into two halves, so the orange block here is the richest 5%, not 1%.'},
-    IN:null, CN:null
-  }
+  US:{year:'2024',groups:[['g50','Poorest 50%',50,1.0],['g40','Middle 40%',40,29.5],['g9','Next 9%',9,34.8],['g1','Richest 1%',1,34.8]],
+      note:'World Inequality Report 2026, United States country sheet (2024). Adults, wealth split equally between partners. The Federal Reserve’s own household figures for 2026 Q2 are close: richest 1% 32.5%, poorest half 2.3%.'},
+  IN:{year:'2024',groups:[['g50','Poorest 50%',50,6.4],['g40','Middle 40%',40,28.6],['g9','Next 9%',9,24.9],['g1','Richest 1%',1,40.1]],
+      note:'World Inequality Report 2026, India country sheet (2024). Built from surveys, tax data and billionaire lists (Bharti, Chancel, Piketty & Somanchi 2024).'},
+  CN:{year:'2024',groups:[['g50','Poorest 50%',50,6.3],['g40','Middle 40%',40,25.8],['g9','Next 9%',9,37.7],['g1','Richest 1%',1,30.2]],
+      note:'World Inequality Report 2026, China country sheet (2024). Built on Piketty, Yang & Zucman (2019).'},
+  FI:{year:'2024',groups:[['gna','Poorest 90%',90,44.5],['g9','Next 9%',9,37.5],['g1','Richest 1%',1,18.0]],
+      note:'World Inequality Database via Our World in Data (2024). WID does not split Finland’s poorest 90%. Statistics Finland’s own survey (households, 2023) puts the poorest half at 4.2% and the middle 40% at 44.0%.'}
 };
-let state={c:'US',s:'wid',t:'t1'};
+const ORDER=['US','IN','CN','FI'];
+let S={c:'US',t:'t1',guesses:{},revealed:{},all:false};
+try{const s=JSON.parse(localStorage.getItem('wealth-guess'));if(s&&s.c){S=Object.assign(S,s);}}catch(e){}
+const save=()=>{try{localStorage.setItem('wealth-guess',JSON.stringify(S));}catch(e){}};
+const fmt=x=>(x<0?'−':'')+Math.abs(x).toFixed(1).replace(/\.0$/,'')+'%';
+const $=id=>document.getElementById(id);
+const g=()=>{const d=DATA[S.c];if(!S.guesses[S.c])S.guesses[S.c]=d.groups.map(x=>x[2]);return S.guesses[S.c];};
 
 function radio(el,opts,key,cb){
   el.innerHTML='';
-  opts.forEach(([v,l])=>{const b=document.createElement('button');b.type='button';b.role='radio';b.textContent=l;b.dataset.v=v;
-    b.setAttribute('aria-checked',state[key]===v);b.onclick=()=>{state[key]=v;[...el.children].forEach(x=>x.setAttribute('aria-checked',x.dataset.v===v));cb();};el.appendChild(b);});
+  opts.forEach(([v,l])=>{const b=document.createElement('button');b.type='button';b.setAttribute('role','radio');b.dataset.v=v;b.innerHTML=l;
+    b.setAttribute('aria-checked',S[key]===v);b.onclick=()=>{S[key]=v;[...el.children].forEach(x=>x.setAttribute('aria-checked',x.dataset.v===v));save();cb();};el.appendChild(b);});
 }
-const fmt=x=>(x<0?'−':'')+Math.abs(x).toFixed(1)+'%';
+function countryLabels(){[...$('country').children].forEach(b=>{b.innerHTML=NAMES[b.dataset.v]+(S.revealed[b.dataset.v]?'<span class="done-dot" title="revealed"></span>':'');});}
 
-function drawPW(){
-  const d=DATA[state.s][state.c];
-  const box=document.getElementById('pwbox'),nd=document.getElementById('nodata');
-  const key=document.getElementById('key'),hl=document.getElementById('headline'),sn=document.getElementById('srcnote');
-  if(!d){box.hidden=true;key.innerHTML='';hl.textContent='';nd.hidden=false;
-    nd.textContent=NAMES[state.c]+' publishes no official series of wealth shares by group. Switch to “Comparable (WID)” to see the research estimate.';sn.textContent='';return;}
-  box.hidden=false;nd.hidden=true;
-  const pb=document.getElementById('popbar'),wb=document.getElementById('wbar'),sv=document.getElementById('links');
-  pb.innerHTML='';wb.innerHTML='';sv.innerHTML='';
-  let px=0,wx=0;
-  d.groups.forEach(([cls,label,p,w])=>{
-    const a=document.createElement('div');a.className=cls;a.style.flex='0 0 '+p+'%';a.textContent=p>=9?p+'%':'';a.title=label+': '+p+'% of people';pb.appendChild(a);
-    const ww=Math.max(w,0);const b=document.createElement('div');b.className=cls;b.style.flex='0 0 '+ww+'%';b.textContent=ww>=7?fmt(w):'';b.title=label+': '+fmt(w)+' of wealth';wb.appendChild(b);
-    const poly=document.createElementNS('http://www.w3.org/2000/svg','polygon');
-    poly.setAttribute('points',`${px*10},0 ${(px+p)*10},0 ${(wx+ww)*10},64 ${wx*10},64`);
-    poly.setAttribute('fill',getComputedStyle(document.documentElement).getPropertyValue('--'+(cls==='gna'?'gna':cls)).trim());
-    poly.setAttribute('opacity','.35');sv.appendChild(poly);
-    px+=p;wx+=ww;
-  });
-  key.innerHTML=d.groups.map(([cls,label,p,w])=>{
-    const r=w/p;const per=(w/p).toFixed(w/p<1?2:1);
-    return `<div style="border-color:var(--${cls})"><b>${fmt(w)}</b><span>${label} · ${p}% of people<br>${w<=0?'owe more than they own':'each holds '+per+'× an equal share'}</span></div>`}).join('');
-  const top=d.groups[d.groups.length-1], bot=d.groups[0];
-  const coins = top[2]===1 ? `Share 100 coins among 100 people: the richest person gets <strong>${Math.round(top[3])}</strong>` : `Share 100 coins among 100 people: the richest ${top[2]} people get <strong>${Math.round(top[3])}</strong> between them`;
-  const botTxt = bot[2]===50 ? `; the poorest 50 people share <strong>${bot[3].toFixed(1)}</strong>.` : `; the other ${bot[2]} people share <strong>${bot[3].toFixed(1)}</strong>.`;
-  hl.innerHTML=`<strong>${NAMES[state.c]}, ${d.year}.</strong> ${coins}${botTxt}`;
-  sn.textContent='Source: '+d.note;
+function segs(el,cls,vals,labelMin){
+  el.querySelectorAll('.seg').forEach(n=>n.remove());
+  let x=0;const out=[];
+  vals.forEach((v,i)=>{const s=document.createElement('div');s.className='seg '+cls[i];const w=Math.max(v,0);
+    s.style.left=x+'%';s.style.width=w+'%';s.textContent=w>=labelMin?fmt(v):'';el.insertBefore(s,el.querySelector('.handle'));out.push(s);x+=w;});
+  return out;
 }
+function placeSegs(list,vals,labelMin){let x=0;vals.forEach((v,i)=>{const w=Math.max(v,0);list[i].style.left=x+'%';list[i].style.width=w+'%';list[i].textContent=w>=labelMin?fmt(v):'';x+=w;});}
+
+let guessSegs=[],handles=[];
+function build(){
+  const d=DATA[S.c],cls=d.groups.map(x=>x[0]);
+  const pop=$('popbar');pop.innerHTML='';
+  segs(pop,cls,d.groups.map(x=>x[2]),8).forEach((s,i)=>{s.title=d.groups[i][1];});
+  const gb=$('guessbar');gb.innerHTML='';
+  guessSegs=segs(gb,cls,g(),5);
+  handles=[];
+  for(let i=0;i<d.groups.length-1;i++){
+    const h=document.createElement('button');h.type='button';h.className='handle';h.setAttribute('role','slider');
+    h.setAttribute('aria-label','Boundary between '+d.groups[i][1]+' and '+d.groups[i+1][1]);
+    h.addEventListener('pointerdown',ev=>{if(S.revealed[S.c])return;ev.preventDefault();h.setPointerCapture(ev.pointerId);h.focus();});
+    h.addEventListener('pointermove',ev=>{if(!h.hasPointerCapture(ev.pointerId))return;const r=gb.getBoundingClientRect();setBoundary(i,(ev.clientX-r.left)/r.width*100);});
+    h.addEventListener('keydown',ev=>{const st=ev.shiftKey?5:1;const cum=cumAt(i);
+      if(ev.key==='ArrowLeft'||ev.key==='ArrowDown'){setBoundary(i,cum-st);ev.preventDefault();}
+      if(ev.key==='ArrowRight'||ev.key==='ArrowUp'){setBoundary(i,cum+st);ev.preventDefault();}});
+    gb.appendChild(h);handles.push(h);
+  }
+  const ab=$('actbar');ab.innerHTML='';
+  const act=segs(ab,cls,S.revealed[S.c]?d.groups.map(x=>x[3]):g(),5);
+  ab._segs=act;
+  update();
+}
+function cumAt(i){return g().slice(0,i+1).reduce((a,b)=>a+b,0);}
+function setBoundary(i,pos){
+  const v=g();const lo=cumAt(i)-v[i],hi=cumAt(i)+v[i+1];
+  pos=Math.round(Math.max(lo,Math.min(hi,pos)));
+  v[i]=pos-lo;v[i+1]=hi-pos;save();update();
+}
+function update(){
+  const d=DATA[S.c],v=g(),rev=!!S.revealed[S.c];
+  placeSegs(guessSegs,v,5);
+  let c=0;handles.forEach((h,i)=>{c+=v[i];h.style.left=c+'%';h.setAttribute('aria-valuemin',0);h.setAttribute('aria-valuemax',100);h.setAttribute('aria-valuenow',c);
+    h.setAttribute('aria-valuetext',d.groups.map((gr,j)=>gr[1]+' '+v[j]+'%').join(', '));});
+  // connectors people -> guess
+  const sv=$('links');sv.innerHTML='';let px=0,wx=0;
+  d.groups.forEach((gr,i)=>{const p=document.createElementNS('http://www.w3.org/2000/svg','polygon');
+    p.setAttribute('points',`${px*10},0 ${(px+gr[2])*10},0 ${(wx+v[i])*10},64 ${wx*10},64`);p.style.fill='var(--'+gr[0]+')';p.setAttribute('opacity','.35');sv.appendChild(p);px+=gr[2];wx+=v[i];});
+  $('game').classList.toggle('revealed',rev);
+  document.querySelectorAll('.actualrow').forEach(n=>n.style.opacity=rev?1:0);
+  $('reveal').disabled=rev;$('again').hidden=!rev;
+  $('prompt').innerHTML=rev?'':'Drag the handles on <b>your guess</b> bar (or focus one and use the arrow keys) until the split looks right to you. Every percentage point you give one group comes out of its neighbour, so the total stays at 100%.';
+  const top=d.groups.length-1;
+  if(!rev){$('headline').innerHTML='Your guess for <strong>'+NAMES[S.c]+'</strong>: the richest 1% own <strong>'+v[top]+'%</strong>'+(d.groups[0][2]===50?', the poorest half own <strong>'+v[0]+'%</strong>.':', the poorest 90% own <strong>'+v[0]+'%</strong>.');
+    $('score').innerHTML='';$('srcnote').textContent='';return;}
+  const a=d.groups.map(x=>x[3]);
+  const err=(a.reduce((s,x,i)=>s+Math.abs(x-v[i]),0)/a.length).toFixed(1);
+  const t=a[top],gt=v[top];
+  let msg;
+  if(gt>0&&t/gt>=1.5)msg=`You gave the richest 1% ${gt}%. They own <strong>${fmt(t)}</strong>, ${(t/gt).toFixed(1)} times your guess.`;
+  else if(t>gt)msg=`You gave the richest 1% ${gt}%. They own <strong>${fmt(t)}</strong>.`;
+  else if(t<gt)msg=`You gave the richest 1% ${gt}%. They own <strong>${fmt(t)}</strong>, less than you thought.`;
+  else msg=`You nailed the richest 1%: <strong>${fmt(t)}</strong>.`;
+  const coins=d.groups[0][2]===50?` Share 100 coins among 100 people: the richest person gets ${Math.round(t)}, and the poorest 50 people share ${a[0].toFixed(1)} between them.`:` Share 100 coins among 100 people: the richest person gets ${Math.round(t)}.`;
+  $('headline').innerHTML=`<strong>${NAMES[S.c]}, ${d.year}.</strong> ${msg}${coins} Your guesses were off by <strong>${err} points</strong> per group on average.`;
+  $('score').innerHTML=d.groups.map(([cls,label,p,w],i)=>{const df=+(w-v[i]).toFixed(1);
+    return `<div style="border-color:var(--${cls})"><b>${label}</b><span class="nums">${fmt(w)} <em>· you said ${v[i]}%</em></span><span class="diff">${df===0?'spot on':(df>0?'+':'−')+Math.abs(df)+' pts vs your guess'} · each person holds ${w<=0?'less than nothing':(w/p).toFixed(w/p<1?2:1)+'× an equal share'}</span></div>`}).join('');
+  $('srcnote').textContent='Source: '+d.note;
+}
+function reveal(){
+  S.revealed[S.c]=true;save();
+  const d=DATA[S.c],ab=$('actbar');
+  placeSegs(ab._segs,g(),5);update();countryLabels();
+  requestAnimationFrame(()=>requestAnimationFrame(()=>placeSegs(ab._segs,d.groups.map(x=>x[3]),5)));
+  if(ORDER.every(k=>S.revealed[k]))showAll();
+}
+function again(){S.revealed[S.c]=false;S.guesses[S.c]=null;save();build();countryLabels();}
+function showAll(){S.all=true;save();$('spoilers').hidden=false;$('gate').hidden=true;drawTrend();}
 
 function drawCmp(){
   const el=document.getElementById('cmp');el.innerHTML='';
   ['US','IN','CN','FI'].forEach(c=>{
-    const d=DATA.wid[c];const n=document.createElement('span');n.className='name';n.textContent=NAMES[c];el.appendChild(n);
+    const d=DATA[c];const n=document.createElement('span');n.className='name';n.textContent=NAMES[c];el.appendChild(n);
     const bar=document.createElement('div');bar.className='bar';
     d.groups.forEach(([cls,label,p,w])=>{const s=document.createElement('div');s.className=cls;s.style.flex='0 0 '+w+'%';s.textContent=w>=6?fmt(w):'';s.title=label+': '+fmt(w);bar.appendChild(s);});
     el.appendChild(bar);
@@ -286,17 +370,17 @@ function drawCmp(){
 const SERIES={"t1":{"CHN":[15.9,17.0,17.9,18.6,19.2,19.6,20.0,20.4,20.5,22.4,23.7,26.2,28.5,29.2,31.1,30.4,28.1,27.3,27.2,27.8,29.6,29.6,30.1,30.0,29.9,30.3,30.7,30.4,30.4,30.4],"FIN":[14.0,15.1,15.9,17.2,18.1,18.0,17.4,17.3,17.6,17.6,18.1,18.8,18.3,16.7,17.8,18.6,17.6,17.4,18.0,18.1,17.9,18.1,18.6,18.6,18.2,18.1,18.5,17.9,17.9,18.0],"IND":[17.2,17.4,17.9,18.5,19.4,20.7,22.6,25.4,25.1,26.8,27.3,29.9,34.0,31.4,28.7,31.8,33.3,30.8,31.1,30.4,33.2,32.6,33.6,37.4,36.5,35.2,39.0,40.1,40.1,40.1],"USA":[29.3,29.6,30.5,31.5,31.8,32.3,32.1,31.5,31.1,31.7,32.3,32.7,33.4,34.0,33.1,34.6,35.3,36.6,35.6,35.8,35.8,35.5,35.5,35.2,34.9,35.1,36.3,34.9,34.8,34.8]},"t10":{"CHN":[40.9,43.0,44.6,45.9,46.9,47.8,48.4,49.0,49.0,50.6,52.3,53.9,55.8,56.9,58.2,62.8,66.8,66.5,66.6,66.7,67.4,67.4,67.8,67.7,67.7,68.0,68.2,68.0,68.0,68.0],"FIN":[52.9,53.7,54.2,55.9,56.7,57.0,56.1,56.4,57.0,57.2,57.0,57.0,55.9,53.7,53.9,55.2,54.6,54.2,54.9,54.9,55.1,55.6,56.1,56.1,55.8,55.7,55.9,55.6,55.5,55.5],"IND":[51.8,51.9,52.3,52.7,53.3,54.1,55.3,57.1,56.9,57.9,58.2,59.7,62.1,63.1,61.7,63.4,64.2,62.8,63.0,62.6,64.2,63.8,64.3,63.4,62.9,62.1,64.4,65.0,65.0,65.0],"USA":[67.1,67.3,68.0,68.6,68.6,68.7,68.2,68.2,68.2,68.7,68.6,68.8,69.7,71.2,71.7,73.0,73.5,74.3,73.9,73.6,73.2,72.8,71.8,71.7,71.4,71.0,70.8,69.6,69.5,69.5]}};
 const LINES=[['USA','United States','--us'],['IND','India','--in'],['CHN','China','--cn'],['FIN','Finland','--fi']];
 function drawTrend(){
-  const sv=document.getElementById('trend'),S=SERIES[state.t];
+  const sv=document.getElementById('trend'),SR=SERIES[S.t];
   const W=760,H=330,L=44,R=120,T=14,B=30;
-  const [lo,hi]=state.t==='t1'?[0,45]:[30,80];const step=state.t==='t1'?10:10;
+  const [lo,hi]=S.t==='t1'?[0,45]:[30,80];const step=S.t==='t1'?10:10;
   const x=i=>L+i*(W-L-R)/29, y=v=>T+(hi-v)*(H-T-B)/(hi-lo);
   let g='';
   for(let v=lo;v<=hi;v+=step){g+=`<line class="gl" x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}"/><text x="${L-8}" y="${y(v)+4}" text-anchor="end">${v}%</text>`;}
   [1995,2000,2005,2010,2015,2020,2024].forEach(yr=>{g+=`<text x="${x(yr-1995)}" y="${H-8}" text-anchor="middle">${yr}</text>`;});
   // end labels with simple collision avoidance
-  const ends=LINES.map(([k,n,c])=>({k,n,c,v:S[k][29],yy:y(S[k][29])})).sort((a,b)=>a.yy-b.yy);
+  const ends=LINES.map(([k,n,c])=>({k,n,c,v:SR[k][29],yy:y(SR[k][29])})).sort((a,b)=>a.yy-b.yy);
   for(let i=1;i<ends.length;i++){if(ends[i].yy-ends[i-1].yy<16)ends[i].yy=ends[i-1].yy+16;}
-  LINES.forEach(([k,n,c])=>{g+=`<polyline class="ln" style="stroke:var(${c})" points="${S[k].map((v,i)=>x(i)+','+y(v)).join(' ')}"/>`;});
+  LINES.forEach(([k,n,c])=>{g+=`<polyline class="ln" style="stroke:var(${c})" points="${SR[k].map((v,i)=>x(i)+','+y(v)).join(' ')}"/>`;});
   ends.forEach(e=>{g+=`<text class="end" x="${W-R+8}" y="${e.yy+4}" style="fill:var(${e.c})">${e.n} ${e.v.toFixed(0)}%</text>`;});
   g+=`<line id="cur" x1="0" x2="0" y1="${T}" y2="${H-B}" stroke="var(--ink-3)" stroke-dasharray="3 3" visibility="hidden"/>`;
   g+=`<rect x="${L}" y="${T}" width="${W-L-R}" height="${H-T-B}" fill="transparent" id="hit"/>`;
@@ -304,15 +388,15 @@ function drawTrend(){
   const hit=document.getElementById('hit'),cur=document.getElementById('cur'),tip=document.getElementById('tip');
   const move=ev=>{const r=sv.getBoundingClientRect();const p=ev.touches?ev.touches[0]:ev;const sx=(p.clientX-r.left)*W/r.width;
     const i=Math.max(0,Math.min(29,Math.round((sx-L)/((W-L-R)/29))));cur.setAttribute('x1',x(i));cur.setAttribute('x2',x(i));cur.setAttribute('visibility','visible');
-    tip.textContent=(1995+i)+' · '+(state.t==='t1'?'richest 1%':'richest 10%')+' own: '+LINES.map(([k,n])=>n+' '+S[k][i].toFixed(1)+'%').join(' · ');};
+    tip.textContent=(1995+i)+' · '+(S.t==='t1'?'richest 1%':'richest 10%')+' own: '+LINES.map(([k,n])=>n+' '+SR[k][i].toFixed(1)+'%').join(' · ');};
   hit.addEventListener('mousemove',move);hit.addEventListener('touchstart',move,{passive:true});hit.addEventListener('touchmove',move,{passive:true});
 }
 
-radio(document.getElementById('country'),[['US','United States'],['IN','India'],['CN','China'],['FI','Finland']],'c',drawPW);
-radio(document.getElementById('source'),[['wid','Comparable (WID)'],['off','Official statistics']],'s',drawPW);
-radio(document.getElementById('tgroup'),[['t1','Richest 1%'],['t10','Richest 10%']],'t',drawTrend);
-drawPW();drawCmp();drawTrend();
-matchMedia('(prefers-color-scheme: dark)').addEventListener('change',drawPW);
+radio($('country'),ORDER.map(k=>[k,NAMES[k]]),'c',build);countryLabels();
+radio($('tgroup'),[['t1','Richest 1%'],['t10','Richest 10%']],'t',drawTrend);
+$('reveal').onclick=reveal;$('again').onclick=again;$('showall').onclick=showAll;
+build();drawCmp();drawTrend();
+if(S.all)showAll();
 </script>
 </body>
 </html>
