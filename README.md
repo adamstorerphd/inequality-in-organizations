@@ -7,7 +7,7 @@ Live index: https://adamstorerphd.github.io/inequality-in-organizations/
 | Exercise | Page |
 |---|---|
 | The Leaky Pipeline: women's share from degrees to the top job (US, France, India, China, Finland), guess-then-reveal | [leaky-pipeline/](https://adamstorerphd.github.io/inequality-in-organizations/leaky-pipeline/) |
-| Who Owns the Wealth?: guess-then-reveal wealth shares of the top 1%, next 9%, middle 40% and bottom 50% (US, India, China, Finland), WID 2024 plus Federal Reserve and Statistics Finland cross-checks | [wealth-shares/](https://adamstorerphd.github.io/inequality-in-organizations/wealth-shares/) |
+| Who Owns the Wealth?: guess-then-reveal wealth shares with an “ideal” bar of the top 1%, next 9%, middle 40% and bottom 50% (US, India, China, Finland), WID 2024 plus Federal Reserve and Statistics Finland cross-checks | [wealth-shares/](https://adamstorerphd.github.io/inequality-in-organizations/wealth-shares/) |
 | Bonus Pool Calculator: split €100,000 across a team of 40 | [bonus-calculator/](https://adamstorerphd.github.io/inequality-in-organizations/bonus-calculator/) |
 
 Every number in the leaky pipeline is a published figure; sources are listed at the bottom of its page.

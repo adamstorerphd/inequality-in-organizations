@@ -101,6 +101,8 @@ h2{font-family:var(--display);font-weight:700;font-size:28px;line-height:1.05;te
 .gate{display:flex;flex-direction:row;flex-wrap:wrap;gap:12px 20px;align-items:center;justify-content:space-between}
 .gate p{color:var(--ink-2);max-width:60ch}
 
+.ideal .seg{background-image:radial-gradient(rgba(255,255,255,.4) 1.4px,transparent 1.6px);background-size:7px 7px}
+.gap{height:14px}
 /* comparison */
 .cmp{display:grid;grid-template-columns:110px 1fr;gap:10px 14px;align-items:center}
 .cmp .name{font-weight:600}
@@ -145,24 +147,60 @@ tr.grp td{font-weight:600;background:var(--paper);text-align:left}
 <section class="card" aria-labelledby="h-game">
   <div>
     <h2 id="h-game">Split the wealth</h2>
-    <p class="sub">The top bar is the people. The bar under it is your guess at how the country’s wealth is split between them. It starts out equal: each group owns the same share as its share of people.</p>
+    <p class="sub">The top bar is the people. Set two bars under it: <b>your guess</b> at how the country’s wealth is actually split, and <b>your ideal</b>, how you think it should be split. Both start out equal: each group owns the same share as its share of people.</p>
   </div>
   <div class="switch" role="radiogroup" aria-label="Country" id="country"></div>
   <div class="game" id="game">
     <span class="lab">People</span><div class="gbar" id="popbar"></div>
     <span></span><svg class="links" id="links" viewBox="0 0 1000 64" preserveAspectRatio="none" aria-hidden="true"></svg>
-    <span class="lab">Your guess</span><div class="gbar guess" id="guessbar"></div>
-    <span class="actualrow" style="height:14px"></span><span class="actualrow" style="height:14px"></span>
+    <span class="lab">1 · Your guess</span><div class="gbar guess" id="guessbar"></div>
+    <span class="gap"></span><span class="gap"></span>
+    <span class="lab">2 · Your ideal</span><div class="gbar ideal" id="idealbar"></div>
+    <span class="gap actualrow"></span><span class="gap actualrow"></span>
     <span class="lab actualrow" id="actlab">Actual</span><div class="gbar actual actualrow" id="actbar"></div>
   </div>
   <p class="prompt" id="prompt"></p>
   <div class="btns">
     <button type="button" class="btn primary" id="reveal">Reveal the estimate</button>
-    <button type="button" class="btn" id="again">Guess again</button>
+    <button type="button" class="btn" id="again">Start again</button>
   </div>
   <p class="headline" id="headline" aria-live="polite"></p>
   <div class="score" id="score"></div>
   <p class="note" id="srcnote"></p>
+</section>
+
+<section class="card" id="research" aria-labelledby="h-ideal" hidden>
+  <div>
+    <h2 id="h-ideal">What do other people think is ideal?</h2>
+    <p class="sub">Nobody has measured the ideal wealth split country by country for the United States, India, China and Finland. The closest evidence comes from a handful of surveys. They use different groups (fifths of the population, or pay ratios), so compare loosely.</p>
+  </div>
+  <p class="headline" id="mytop20"></p>
+  <div class="tw">
+  <table>
+    <thead><tr><th>Survey</th><th>People’s guess</th><th>People’s ideal</th><th>Actual</th></tr></thead>
+    <tbody>
+      <tr class="grp"><td colspan="4">Wealth owned by the richest 20%</td></tr>
+      <tr><td>United States, 2005 · 5,522 adults · Norton &amp; Ariely (2011)</td><td class="num">59%</td><td class="num">32%</td><td class="num">84%</td></tr>
+      <tr><td>Australia · 998 adults · Norton, Neal, Govan, Ariely &amp; Holland (2014)</td><td class="num">—</td><td class="num">34%</td><td class="num">62%</td></tr>
+      <tr class="grp"><td colspan="4">CEO pay as a multiple of an unskilled worker’s pay · 40 countries, 2009 · Kiatpongsan &amp; Norton (2014)</td></tr>
+      <tr><td>All 40 countries (median), incl. China, Finland and the US</td><td class="num">10 : 1</td><td class="num">4.6 : 1</td><td class="num">—</td></tr>
+      <tr><td>United States</td><td class="num">30 : 1</td><td class="num">7 : 1</td><td class="num">354 : 1</td></tr>
+      <tr><td>Lowest and highest ideal</td><td class="num">—</td><td class="num">2 : 1 Denmark<br>20 : 1 Taiwan</td><td class="num">—</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="cols">
+    <div><h3>Ideals are more equal everywhere</h3><p>Across countries, ages and question formats, people want a more equal split than the one they think exists (Arsenio 2018). In the US survey the ideal was far more equal across Bush and Kerry voters, rich and poor, men and women, and 92% preferred an unlabelled pie chart that was in fact Sweden’s distribution to one that was the US’s.</p></div>
+    <div><h3>The gaps people miss are not the same everywhere</h3><p>A review of the cross-country studies (Arsenio 2018) finds that Americans’ underestimate of inequality is not found in many other countries. India is not covered by any of these surveys. China and Finland appear only in the pay-ratio study, where their figures are shown in a chart rather than printed.</p></div>
+    <div><h3>How you ask changes the answer</h3><p>Asking people to split percentages between fifths (as here) yields much smaller gaps than asking for each fifth’s average wealth in money terms, where estimates get close to reality (Eriksson &amp; Simpson 2012). Even then, people’s ideal is more equal than their estimate.</p></div>
+  </div>
+  <ol class="src">
+    <li><b>Norton &amp; Ariely (2011)</b>, “Building a Better America—One Wealth Quintile at a Time”, <i>Perspectives on Psychological Science</i> 6(1). <a href="https://www.hbs.edu/ris/Publication%20Files/Norton_Michael_Building%20a%20better%20America%20One%20wealth%20quintile%20at%20a%20time_4c575dff-fe1d-4002-b61a-1227d08b71be.pdf">PDF (HBS)</a></li>
+    <li><b>Norton, Neal, Govan, Ariely &amp; Holland (2014)</b>, “The Not-So-Common-Wealth of Australia”, <i>Analyses of Social Issues and Public Policy</i> 14(1). <a href="https://www.hbs.edu/ris/Publication%20Files/norton%20neal%20govan%20ariely%20holland_9c8b4689-d8f7-43c1-82e3-e85f552caca4.pdf">PDF (HBS)</a></li>
+    <li><b>Kiatpongsan &amp; Norton (2014)</b>, “How Much (More) Should CEOs Make? A Universal Desire for More Equal Pay”, <i>Perspectives on Psychological Science</i> 9(6). International Social Survey Programme 2009, 55,238 respondents. <a href="https://www.hbs.edu/ris/Publication%20Files/kiatpongsan%20norton%202014_f02b004a-c2de-4358-9811-ea273d372af7.pdf">PDF (HBS)</a></li>
+    <li><b>Arsenio (2018)</b>, “The Wealth of Nations: International Judgments Regarding Actual and Ideal Resource Distributions”, <i>Current Directions in Psychological Science</i> 27(5). <a href="https://www.psychologicalscience.org/journals/current-directions/0963721418762377/">Abstract</a></li>
+    <li><b>Eriksson &amp; Simpson (2012)</b>, “What do Americans know about inequality? It depends on how you ask them”, <i>Judgment and Decision Making</i> 7(6). <a href="https://dlab.sauder.ubc.ca/sjdm/journal/12/121027/jdm121027.html">Open access</a></li>
+  </ol>
 </section>
 
 <section class="card gate" id="gate">
@@ -265,12 +303,14 @@ const DATA = {
       note:'World Inequality Database via Our World in Data (2024). WID does not split Finland’s poorest 90%. Statistics Finland’s own survey (households, 2023) puts the poorest half at 4.2% and the middle 40% at 44.0%.'}
 };
 const ORDER=['US','IN','CN','FI'];
-let S={c:'US',t:'t1',guesses:{},revealed:{},all:false};
-try{const s=JSON.parse(localStorage.getItem('wealth-guess'));if(s&&s.c){S=Object.assign(S,s);}}catch(e){}
+let S={c:'US',t:'t1',guesses:{},ideals:{},revealed:{},all:false};
+try{const s=JSON.parse(localStorage.getItem('wealth-guess'));if(s&&s.c){S=Object.assign(S,s);S.ideals=S.ideals||{};}}catch(e){}
 const save=()=>{try{localStorage.setItem('wealth-guess',JSON.stringify(S));}catch(e){}};
 const fmt=x=>(x<0?'−':'')+Math.abs(x).toFixed(1).replace(/\.0$/,'')+'%';
 const $=id=>document.getElementById(id);
-const g=()=>{const d=DATA[S.c];if(!S.guesses[S.c])S.guesses[S.c]=d.groups.map(x=>x[2]);return S.guesses[S.c];};
+const pops=()=>DATA[S.c].groups.map(x=>x[2]);
+const g=()=>S.guesses[S.c]||(S.guesses[S.c]=pops());
+const ideal=()=>S.ideals[S.c]||(S.ideals[S.c]=pops());
 
 function radio(el,opts,key,cb){
   el.innerHTML='';
@@ -281,71 +321,81 @@ function countryLabels(){[...$('country').children].forEach(b=>{b.innerHTML=NAME
 
 function segs(el,cls,vals,labelMin){
   el.querySelectorAll('.seg').forEach(n=>n.remove());
-  let x=0;const out=[];
-  vals.forEach((v,i)=>{const s=document.createElement('div');s.className='seg '+cls[i];const w=Math.max(v,0);
-    s.style.left=x+'%';s.style.width=w+'%';s.textContent=w>=labelMin?fmt(v):'';el.insertBefore(s,el.querySelector('.handle'));out.push(s);x+=w;});
-  return out;
+  const out=[];
+  vals.forEach((v,i)=>{const s=document.createElement('div');s.className='seg '+cls[i];el.insertBefore(s,el.querySelector('.handle'));out.push(s);});
+  placeSegs(out,vals,labelMin);return out;
 }
 function placeSegs(list,vals,labelMin){let x=0;vals.forEach((v,i)=>{const w=Math.max(v,0);list[i].style.left=x+'%';list[i].style.width=w+'%';list[i].textContent=w>=labelMin?fmt(v):'';x+=w;});}
 
-let guessSegs=[],handles=[];
+// an editable bar: dividers you drag or move with arrow keys; the total stays 100
+function editor(bar,get,name){
+  const d=DATA[S.c],cls=d.groups.map(x=>x[0]);
+  bar.innerHTML='';
+  const ed={segs:segs(bar,cls,get(),5),handles:[]};
+  const cum=i=>get().slice(0,i+1).reduce((a,b)=>a+b,0);
+  const set=(i,pos)=>{const v=get();const lo=cum(i)-v[i],hi=cum(i)+v[i+1];pos=Math.round(Math.max(lo,Math.min(hi,pos)));v[i]=pos-lo;v[i+1]=hi-pos;save();update();};
+  for(let i=0;i<d.groups.length-1;i++){
+    const h=document.createElement('button');h.type='button';h.className='handle';h.setAttribute('role','slider');
+    h.setAttribute('aria-label',name+': boundary between '+d.groups[i][1]+' and '+d.groups[i+1][1]);
+    h.addEventListener('pointerdown',ev=>{if(S.revealed[S.c])return;ev.preventDefault();h.setPointerCapture(ev.pointerId);h.focus();});
+    h.addEventListener('pointermove',ev=>{if(!h.hasPointerCapture(ev.pointerId))return;const r=bar.getBoundingClientRect();set(i,(ev.clientX-r.left)/r.width*100);});
+    h.addEventListener('keydown',ev=>{if(S.revealed[S.c])return;const st=ev.shiftKey?5:1;
+      if(ev.key==='ArrowLeft'||ev.key==='ArrowDown'){set(i,cum(i)-st);ev.preventDefault();}
+      if(ev.key==='ArrowRight'||ev.key==='ArrowUp'){set(i,cum(i)+st);ev.preventDefault();}});
+    bar.appendChild(h);ed.handles.push(h);
+  }
+  ed.update=()=>{const v=get();placeSegs(ed.segs,v,5);let c=0;
+    ed.handles.forEach((h,i)=>{c+=v[i];h.style.left=c+'%';h.setAttribute('aria-valuemin',0);h.setAttribute('aria-valuemax',100);h.setAttribute('aria-valuenow',c);
+      h.setAttribute('aria-valuetext',d.groups.map((gr,j)=>gr[1]+' '+v[j]+'%').join(', '));});};
+  return ed;
+}
+
+let EG,EI;
 function build(){
   const d=DATA[S.c],cls=d.groups.map(x=>x[0]);
   const pop=$('popbar');pop.innerHTML='';
-  segs(pop,cls,d.groups.map(x=>x[2]),8).forEach((s,i)=>{s.title=d.groups[i][1];});
-  const gb=$('guessbar');gb.innerHTML='';
-  guessSegs=segs(gb,cls,g(),5);
-  handles=[];
-  for(let i=0;i<d.groups.length-1;i++){
-    const h=document.createElement('button');h.type='button';h.className='handle';h.setAttribute('role','slider');
-    h.setAttribute('aria-label','Boundary between '+d.groups[i][1]+' and '+d.groups[i+1][1]);
-    h.addEventListener('pointerdown',ev=>{if(S.revealed[S.c])return;ev.preventDefault();h.setPointerCapture(ev.pointerId);h.focus();});
-    h.addEventListener('pointermove',ev=>{if(!h.hasPointerCapture(ev.pointerId))return;const r=gb.getBoundingClientRect();setBoundary(i,(ev.clientX-r.left)/r.width*100);});
-    h.addEventListener('keydown',ev=>{const st=ev.shiftKey?5:1;const cum=cumAt(i);
-      if(ev.key==='ArrowLeft'||ev.key==='ArrowDown'){setBoundary(i,cum-st);ev.preventDefault();}
-      if(ev.key==='ArrowRight'||ev.key==='ArrowUp'){setBoundary(i,cum+st);ev.preventDefault();}});
-    gb.appendChild(h);handles.push(h);
-  }
+  segs(pop,cls,pops(),8).forEach((s,i)=>{s.title=d.groups[i][1];});
+  EG=editor($('guessbar'),g,'Your guess');
+  EI=editor($('idealbar'),ideal,'Your ideal');
   const ab=$('actbar');ab.innerHTML='';
-  const act=segs(ab,cls,S.revealed[S.c]?d.groups.map(x=>x[3]):g(),5);
-  ab._segs=act;
+  ab._segs=segs(ab,cls,S.revealed[S.c]?d.groups.map(x=>x[3]):g(),5);
   update();
 }
-function cumAt(i){return g().slice(0,i+1).reduce((a,b)=>a+b,0);}
-function setBoundary(i,pos){
-  const v=g();const lo=cumAt(i)-v[i],hi=cumAt(i)+v[i+1];
-  pos=Math.round(Math.max(lo,Math.min(hi,pos)));
-  v[i]=pos-lo;v[i+1]=hi-pos;save();update();
-}
+// share of the richest 20%, assuming equal shares inside the middle 40% (or poorest 90% for Finland)
+function top20(v){const d=DATA[S.c].groups;const n=d.length;return n===4?v[3]+v[2]+v[1]/4:v[2]+v[1]+v[0]/9;}
+
 function update(){
-  const d=DATA[S.c],v=g(),rev=!!S.revealed[S.c];
-  placeSegs(guessSegs,v,5);
-  let c=0;handles.forEach((h,i)=>{c+=v[i];h.style.left=c+'%';h.setAttribute('aria-valuemin',0);h.setAttribute('aria-valuemax',100);h.setAttribute('aria-valuenow',c);
-    h.setAttribute('aria-valuetext',d.groups.map((gr,j)=>gr[1]+' '+v[j]+'%').join(', '));});
-  // connectors people -> guess
+  const d=DATA[S.c],v=g(),iv=ideal(),rev=!!S.revealed[S.c];
+  EG.update();EI.update();
   const sv=$('links');sv.innerHTML='';let px=0,wx=0;
   d.groups.forEach((gr,i)=>{const p=document.createElementNS('http://www.w3.org/2000/svg','polygon');
     p.setAttribute('points',`${px*10},0 ${(px+gr[2])*10},0 ${(wx+v[i])*10},64 ${wx*10},64`);p.style.fill='var(--'+gr[0]+')';p.setAttribute('opacity','.35');sv.appendChild(p);px+=gr[2];wx+=v[i];});
   $('game').classList.toggle('revealed',rev);
   document.querySelectorAll('.actualrow').forEach(n=>n.style.opacity=rev?1:0);
   $('reveal').disabled=rev;$('again').hidden=!rev;
-  $('prompt').innerHTML=rev?'':'Drag the handles on <b>your guess</b> bar (or focus one and use the arrow keys) until the split looks right to you. Every percentage point you give one group comes out of its neighbour, so the total stays at 100%.';
+  $('research').hidden=!ORDER.some(k=>S.revealed[k]);
+  $('prompt').innerHTML=rev?'':'Drag the handles on each bar (or focus one and use the arrow keys). Set <b>1 · your guess</b> at the real split, then <b>2 · your ideal</b>. Every point you give one group comes out of its neighbour, so each bar stays at 100%.';
   const top=d.groups.length-1;
-  if(!rev){$('headline').innerHTML='Your guess for <strong>'+NAMES[S.c]+'</strong>: the richest 1% own <strong>'+v[top]+'%</strong>'+(d.groups[0][2]===50?', the poorest half own <strong>'+v[0]+'%</strong>.':', the poorest 90% own <strong>'+v[0]+'%</strong>.');
+  const poorLbl=d.groups[0][2]===50?'the poorest half':'the poorest 90%';
+  if(!rev){$('headline').innerHTML=`<strong>${NAMES[S.c]}.</strong> Your guess: the richest 1% own <strong>${v[top]}%</strong> and ${poorLbl} own <strong>${v[0]}%</strong>. Your ideal: the richest 1% would own <strong>${iv[top]}%</strong> and ${poorLbl} <strong>${iv[0]}%</strong>.`;
     $('score').innerHTML='';$('srcnote').textContent='';return;}
   const a=d.groups.map(x=>x[3]);
   const err=(a.reduce((s,x,i)=>s+Math.abs(x-v[i]),0)/a.length).toFixed(1);
-  const t=a[top],gt=v[top];
+  const t=a[top],gt=v[top],it=iv[top];
   let msg;
-  if(gt>0&&t/gt>=1.5)msg=`You gave the richest 1% ${gt}%. They own <strong>${fmt(t)}</strong>, ${(t/gt).toFixed(1)} times your guess.`;
-  else if(t>gt)msg=`You gave the richest 1% ${gt}%. They own <strong>${fmt(t)}</strong>.`;
-  else if(t<gt)msg=`You gave the richest 1% ${gt}%. They own <strong>${fmt(t)}</strong>, less than you thought.`;
+  if(gt>0&&t/gt>=1.5)msg=`You guessed the richest 1% own ${gt}%. They own <strong>${fmt(t)}</strong>, ${(t/gt).toFixed(1)} times your guess.`;
+  else if(t>gt)msg=`You guessed the richest 1% own ${gt}%. They own <strong>${fmt(t)}</strong>.`;
+  else if(t<gt)msg=`You guessed the richest 1% own ${gt}%. They own <strong>${fmt(t)}</strong>, less than you thought.`;
   else msg=`You nailed the richest 1%: <strong>${fmt(t)}</strong>.`;
-  const coins=d.groups[0][2]===50?` Share 100 coins among 100 people: the richest person gets ${Math.round(t)}, and the poorest 50 people share ${a[0].toFixed(1)} between them.`:` Share 100 coins among 100 people: the richest person gets ${Math.round(t)}.`;
-  $('headline').innerHTML=`<strong>${NAMES[S.c]}, ${d.year}.</strong> ${msg}${coins} Your guesses were off by <strong>${err} points</strong> per group on average.`;
+  let idl;
+  if(it>0&&t/it>=1.5)idl=` Your ideal gave them ${it}%: reality is ${(t/it).toFixed(1)} times your ideal.`;
+  else if(it>=t)idl=` Your ideal gave them ${it}%, at or above what they actually own.`;
+  else idl=` Your ideal gave them ${it}%.`;
+  $('headline').innerHTML=`<strong>${NAMES[S.c]}, ${d.year}.</strong> ${msg}${idl} Your guesses were off by <strong>${err} points</strong> per group on average.`;
   $('score').innerHTML=d.groups.map(([cls,label,p,w],i)=>{const df=+(w-v[i]).toFixed(1);
-    return `<div style="border-color:var(--${cls})"><b>${label}</b><span class="nums">${fmt(w)} <em>· you said ${v[i]}%</em></span><span class="diff">${df===0?'spot on':(df>0?'+':'−')+Math.abs(df)+' pts vs your guess'} · each person holds ${w<=0?'less than nothing':(w/p).toFixed(w/p<1?2:1)+'× an equal share'}</span></div>`}).join('');
+    return `<div style="border-color:var(--${cls})"><b>${label}</b><span class="nums">${fmt(w)} <em>actual</em></span><span class="diff">Your guess ${v[i]}% (${df===0?'spot on':(df>0?'+':'−')+Math.abs(df)+' pts'}) · your ideal ${iv[i]}%<br>Each person holds ${w<=0?'less than nothing':(w/p).toFixed(w/p<1?2:1)+'× an equal share'}</span></div>`}).join('');
   $('srcnote').textContent='Source: '+d.note;
+  $('mytop20').innerHTML=`Your ideal for ${NAMES[S.c]} gives the richest 20% about <strong>${Math.round(top20(iv))}%</strong> of the wealth (assuming equal shares within the ${d.groups.length===4?'middle 40%':'poorest 90%'}). The average ideal in the US survey was 32%, in Australia 34%. Actual at the time of those surveys: US 84%, Australia 62%.`;
 }
 function reveal(){
   S.revealed[S.c]=true;save();
@@ -354,7 +404,7 @@ function reveal(){
   requestAnimationFrame(()=>requestAnimationFrame(()=>placeSegs(ab._segs,d.groups.map(x=>x[3]),5)));
   if(ORDER.every(k=>S.revealed[k]))showAll();
 }
-function again(){S.revealed[S.c]=false;S.guesses[S.c]=null;save();build();countryLabels();}
+function again(){S.revealed[S.c]=false;S.guesses[S.c]=null;S.ideals[S.c]=null;save();build();countryLabels();}
 function showAll(){S.all=true;save();$('spoilers').hidden=false;$('gate').hidden=true;drawTrend();}
 
 function drawCmp(){
