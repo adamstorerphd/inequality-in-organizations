@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Who Owns the Wealth?</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Wealth shares by group: United States, India, China, Finland.
+   Every figure is a published estimate; sources at the bottom. */
+:root{
+  --paper:#eef1f4; --panel:#f8fafb; --ink:#14202b; --ink-2:#47586a; --ink-3:#6b7b8a;
+  --rule:#c9d2da; --grid:rgba(20,32,43,.08);
+  --g50:#b9cadb; --g40:#6f97c0; --g9:#24548a; --g1:#eb6834; --gna:#d9dfe5;
+  --us:#2a78d6; --in:#d9811a; --cn:#c8402f; --fi:#16907d;
+  --display:'Big Shoulders Display','Arial Narrow','Helvetica Neue',sans-serif;
+  --body:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,'SF Mono',Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0f1a24; --panel:#15222e; --ink:#e9eff4; --ink-2:#aebccb; --ink-3:#8497a8;
+    --rule:#2b3b4a; --grid:rgba(233,239,244,.08);
+    --g50:#3b5168; --g40:#5f8ab5; --g9:#a9c7e6; --g1:#f07a48; --gna:#25333f;
+    --us:#4b92ea; --in:#e8a043; --cn:#e2604d; --fi:#36b8a2;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0f1a24; --panel:#15222e; --ink:#e9eff4; --ink-2:#aebccb; --ink-3:#8497a8;
+  --rule:#2b3b4a; --grid:rgba(233,239,244,.08);
+  --g50:#3b5168; --g40:#5f8ab5; --g9:#a9c7e6; --g1:#f07a48; --gna:#25333f;
+  --us:#4b92ea; --in:#e8a043; --cn:#e2604d; --fi:#36b8a2;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:15.5px;line-height:1.55}
+.page{max-width:1080px;margin:0 auto;padding-inline:clamp(16px,3.4vw,40px);padding-block:28px 64px;display:flex;flex-direction:column;gap:28px}
+h1,h2,h3,p{margin:0}
+a{color:inherit;text-underline-offset:3px}
+:focus-visible{outline:2px solid var(--us);outline-offset:2px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(46px,7.4vw,88px);line-height:.92;text-transform:uppercase;text-wrap:balance}
+.lede{max-width:62ch;color:var(--ink-2);font-size:17px;margin-top:10px}
+h2{font-family:var(--display);font-weight:700;font-size:28px;line-height:1.05;text-transform:uppercase;text-wrap:balance}
+.sub{color:var(--ink-2);max-width:68ch;font-size:14.5px;margin-top:4px}
+.card{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:20px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.controls{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center}
+.switch{display:inline-flex;align-self:flex-start;flex-wrap:wrap;border:2px solid var(--ink-3);border-radius:999px;padding:3px;gap:3px;background:var(--panel)}
+.switch button{font:600 14px var(--body);color:var(--ink-2);background:none;border:0;border-radius:999px;padding:7px 16px;cursor:pointer}
+.switch button[aria-checked="true"]{background:var(--ink);color:var(--paper)}
+.switch.small button{font-size:13px;padding:5px 12px}
+
+/* people vs wealth */
+.pw{display:grid;grid-template-columns:70px 1fr;gap:0 12px;align-items:center}
+.pw .lab{font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3)}
+.bar{display:flex;height:46px;border-radius:4px;overflow:hidden}
+.bar div{height:100%;display:flex;align-items:center;justify-content:center;font:600 13px var(--mono);color:#fff;overflow:hidden;white-space:nowrap;transition:flex-basis .5s ease;min-width:0}
+.bar .g50,.bar .gna{color:var(--ink)}
+.links{height:64px;width:100%;display:block}
+.links polygon{transition:all .5s ease}
+.g50{background:var(--g50)} .g40{background:var(--g40)} .g9{background:var(--g9)} .g1{background:var(--g1)}
+.gna{background:repeating-linear-gradient(45deg,var(--gna) 0 6px,transparent 6px 12px);border:1px dashed var(--ink-3)}
+.key{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.key div{border-left:6px solid;padding:2px 0 2px 10px}
+.key b{display:block;font:600 22px var(--mono)}
+.key span{font-size:13.5px;color:var(--ink-2)}
+.headline{font-size:18px;max-width:70ch}
+.headline strong{font-weight:600}
+.note{font-size:13.5px;color:var(--ink-2);max-width:80ch}
+.none{padding:18px;border:1px dashed var(--rule);border-radius:4px;color:var(--ink-2)}
+
+/* comparison */
+.cmp{display:grid;grid-template-columns:110px 1fr;gap:10px 14px;align-items:center}
+.cmp .name{font-weight:600}
+.cmp .bar{height:34px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-family:var(--mono);font-size:12px;color:var(--ink-2);list-style:none;margin:0;padding:0}
+.legend li{display:inline-flex;align-items:center;gap:6px}
+.sw{display:inline-block;width:12px;height:12px;border-radius:2px;flex:none}
+
+/* trend */
+.chart{width:100%;height:auto;display:block;overflow:visible}
+.chart text{font-family:var(--mono);font-size:12px;fill:var(--ink-3)}
+.chart .gl{stroke:var(--grid)}
+.chart .ln{fill:none;stroke-width:2.5;stroke-linejoin:round}
+.chart .end{font-weight:500;font-size:13px}
+.tip{font-family:var(--mono);font-size:12px;color:var(--ink-2);min-height:1.5em}
+
+/* tables */
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:7px 10px;border-bottom:1px solid var(--rule);text-align:right;vertical-align:top}
+th:first-child,td:first-child{text-align:left}
+th{font-family:var(--mono);font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);font-weight:500}
+td.num{font-family:var(--mono)}
+tr.grp td{font-weight:600;background:var(--paper);text-align:left}
+
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px 32px}
+.cols h3{font-size:15px;font-weight:600;margin-bottom:4px}
+.cols p{font-size:14.5px;color:var(--ink-2)}
+.src{margin:0;padding-left:20px;font-size:14px;color:var(--ink-2);display:flex;flex-direction:column;gap:8px}
+.src b{color:var(--ink);font-weight:600}
+</style>
+</head>
+<body>
+<main class="page">
+
+<header>
+  <p class="eyebrow">Inequality in Organizations · Wealth</p>
+  <h1>Who owns the wealth?</h1>
+  <p class="lede">Line everyone in a country up from poorest to richest. How much of the country’s total private wealth (homes, land, savings, shares and businesses, minus debts) does each group own? Estimates for the United States, India, China and Finland.</p>
+</header>
+
+<section class="card" aria-labelledby="h-pw">
+  <div>
+    <h2 id="h-pw">Share of people vs share of wealth</h2>
+    <p class="sub">The top bar is the population. The bottom bar is the wealth that group owns. If wealth were shared equally the two bars would line up.</p>
+  </div>
+  <div class="controls">
+    <div class="switch" role="radiogroup" aria-label="Country" id="country"></div>
+    <div class="switch small" role="radiogroup" aria-label="Data source" id="source"></div>
+  </div>
+  <div id="pwbox">
+    <div class="pw">
+      <span class="lab">People</span><div class="bar" id="popbar"></div>
+      <span></span><svg class="links" id="links" viewBox="0 0 1000 64" preserveAspectRatio="none" aria-hidden="true"></svg>
+      <span class="lab">Wealth</span><div class="bar" id="wbar"></div>
+    </div>
+  </div>
+  <div class="none" id="nodata" hidden></div>
+  <p class="headline" id="headline" aria-live="polite"></p>
+  <div class="key" id="key"></div>
+  <p class="note" id="srcnote"></p>
+</section>
+
+<section class="card" aria-labelledby="h-cmp">
+  <div>
+    <h2 id="h-cmp">Four countries side by side</h2>
+    <p class="sub">Share of total net personal wealth by group, 2024. World Inequality Database estimates, built the same way for every country so they can be compared.</p>
+  </div>
+  <ul class="legend">
+    <li><span class="sw g50"></span>Poorest 50%</li>
+    <li><span class="sw g40"></span>Middle 40%</li>
+    <li><span class="sw g9"></span>Next 9% (top 10% minus top 1%)</li>
+    <li><span class="sw g1"></span>Richest 1%</li>
+    <li><span class="sw gna"></span>Poorest 90% (not split for Finland)</li>
+  </ul>
+  <div class="cmp" id="cmp"></div>
+</section>
+
+<section class="card" aria-labelledby="h-trend">
+  <div>
+    <h2 id="h-trend">How it changed, 1995–2024</h2>
+    <p class="sub">Share of total wealth owned by the richest group. World Inequality Database series.</p>
+  </div>
+  <div class="switch small" role="radiogroup" aria-label="Group" id="tgroup"></div>
+  <svg class="chart" id="trend" viewBox="0 0 760 330" role="img" aria-label="Line chart of top wealth shares 1995 to 2024"></svg>
+  <p class="tip" id="tip">Hover or tap the chart to read a year.</p>
+  <p class="note">The last two or three years for India, China and the United States repeat the most recent estimate (the series is carried forward until new tax and survey data arrive), so read 2022–24 as provisional.</p>
+</section>
+
+<section class="card" aria-labelledby="h-off">
+  <div>
+    <h2 id="h-off">Cross-check: official national statistics</h2>
+    <p class="sub">Statistical agencies measure households rather than adults and rely more on surveys, so their numbers differ from the comparable estimates above. The direction of change is the same.</p>
+  </div>
+  <div class="tw">
+  <table>
+    <thead><tr><th>Group</th><th>Then</th><th>Latest</th><th>Change (pts)</th></tr></thead>
+    <tbody>
+      <tr class="grp"><td colspan="4">United States · Federal Reserve, Distributional Financial Accounts (households) · 1989 Q3 → 2026 Q2</td></tr>
+      <tr><td>Richest 0.1%</td><td class="num">8.6%</td><td class="num">15.0%</td><td class="num">+6.4</td></tr>
+      <tr><td>Richest 1%</td><td class="num">22.8%</td><td class="num">32.5%</td><td class="num">+9.7</td></tr>
+      <tr><td>Richest 10%</td><td class="num">60.8%</td><td class="num">68.9%</td><td class="num">+8.1</td></tr>
+      <tr><td>Next 40% (50th–90th percentile)</td><td class="num">35.7%</td><td class="num">28.8%</td><td class="num">−6.9</td></tr>
+      <tr><td>Poorest 50%</td><td class="num">3.5%</td><td class="num">2.3%</td><td class="num">−1.2</td></tr>
+      <tr class="grp"><td colspan="4">Finland · Statistics Finland, Households’ assets survey (households) · 1987 → 2023</td></tr>
+      <tr><td>Richest 5%</td><td class="num">23.5%</td><td class="num">37.2%</td><td class="num">+13.7</td></tr>
+      <tr><td>Richest 10%</td><td class="num">36.7%</td><td class="num">51.8%</td><td class="num">+15.1</td></tr>
+      <tr><td>Middle 40% (deciles VI–IX)</td><td class="num">53.8%</td><td class="num">44.0%</td><td class="num">−9.8</td></tr>
+      <tr><td>Poorest 50%</td><td class="num">9.5%</td><td class="num">4.2%</td><td class="num">−5.3</td></tr>
+      <tr><td>Poorest 10% (decile I)</td><td class="num">−1.2%</td><td class="num">−0.9%</td><td class="num">+0.3</td></tr>
+      <tr class="grp"><td colspan="4">India and China</td></tr>
+      <tr><td colspan="4" style="text-align:left;color:var(--ink-2)">Neither government publishes a regular series of wealth shares by group. India’s All-India Debt and Investment Survey and China’s household finance surveys under-count the very rich, so researchers combine them with tax records and billionaire lists. That is what the World Inequality Database figures above do.</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section class="card" aria-labelledby="h-read">
+  <h2 id="h-read">Reading the numbers</h2>
+  <div class="cols">
+    <div><h3>Wealth is not income</h3><p>Wealth is what you own minus what you owe, built up over years and passed on. It is always far more concentrated than income. In the United States the richest 10% get about 47% of income but own about 70% of wealth.</p></div>
+    <div><h3>A share can be below zero</h3><p>People whose debts exceed their assets (student loans, mortgages under water) have negative net wealth. That is why Finland’s poorest tenth owns −0.9%, and why the US poorest half owns only a sliver.</p></div>
+    <div><h3>People or households?</h3><p>The World Inequality Database splits wealth equally between adult partners and ranks adults. Statistics Finland and the Federal Reserve rank households. Different units give different shares for the “same” group.</p></div>
+    <div><h3>Surveys miss the top</h3><p>The very rich rarely answer surveys and under-report when they do. Estimates that add tax data and rich lists (WID) usually show a larger top share than survey-only figures. That is one reason Finland’s top 10% is 55.5% in WID and 51.8% in the official survey.</p></div>
+  </div>
+</section>
+
+<section class="card" aria-labelledby="h-src">
+  <h2 id="h-src">Sources</h2>
+  <ol class="src">
+    <li><b>World Inequality Report 2026, Country Sheets.</b> World Inequality Lab, 2025. Table 1 “Inequality outlook”: China p. 9, India p. 16, United States p. 40 (2024 wealth shares). <a href="https://wir2026.wid.world/www-site/uploads/2026/09/WIR26_Country_Sheets.pdf">PDF</a> · <a href="https://wir2026.wid.world/">report site</a></li>
+    <li><b>World Inequality Database, top 1% and top 10% wealth shares, 1995–2024</b> (all four countries; Finland’s 2024 shares). Via Our World in Data, “Wealth share of the richest 1%” (switch to 10% in the chart). <a href="https://ourworldindata.org/grapher/wealth-share-richest">Chart and data</a> · <a href="https://wid.world/country/finland/">WID Finland page</a></li>
+    <li><b>Method note: how WID estimates wealth where data are thin.</b> “Global Wealth Inequality on WID.world: Estimates and Imputations”, World Inequality Lab Technical Note 2025/01. <a href="https://wid.world/document/global-wealth-inequality-on-wid-world-estimates-and-imputations-world-inequality-lab-technical-note-2025-01/">Link</a></li>
+    <li><b>United States: Federal Reserve Board, Distributional Financial Accounts</b>, net worth by wealth percentile group, 1989 Q3–2026 Q2. <a href="https://www.federalreserve.gov/releases/z1/dataviz/dfa/distribute/table/">Table and CSV download</a></li>
+    <li><b>Finland: Statistics Finland, Households’ assets 2023</b> (released 12 March 2025), and database table 152a “Wealth shares (%), means, medians and maximum values of decile groups, 1987–2023”. <a href="https://stat.fi/en/publication/cm1hek7m45vlf07vxdwvayu3c">Release</a> · <a href="https://pxdata.stat.fi/PxWeb/pxweb/en/StatFin/StatFin__vtutk/152a.px/">Table 152a</a></li>
+    <li><b>India: Bharti, Chancel, Piketty &amp; Somanchi (2024)</b>, “Income and Wealth Inequality in India, 1922–2023: The Rise of the Billionaire Raj”, World Inequality Lab Working Paper 2024/09. <a href="https://wid.world/www-site/uploads/2024/03/WorldInequalityLab_WP2024_09_Income-and-Wealth-Inequality-in-India-1922-2023_Final.pdf">PDF</a></li>
+    <li><b>China: Piketty, Yang &amp; Zucman</b>, “Capital Accumulation, Private Property and Rising Inequality in China, 1978–2015”, <i>American Economic Review</i> 109(7), 2019. Open working-paper version: <a href="https://wid.world/document/t-piketty-l-yang-and-g-zucman-capital-accumulation-private-property-and-inequality-in-china-1978-2015-2016/">WID</a></li>
+  </ol>
+</section>
+
+</main>
+<script>
+const POP = {g50:50,g40:40,g9:9,g1:1};
+const NAMES = {US:'United States',IN:'India',CN:'China',FI:'Finland'};
+// Each dataset: list of groups {cls, label, pop, w}
+const DATA = {
+  wid:{
+    US:{year:'2024',groups:[['g50','Poorest 50%',50,1.0],['g40','Middle 40%',40,29.5],['g9','Next 9%',9,34.8],['g1','Richest 1%',1,34.8]],
+        note:'World Inequality Report 2026, United States country sheet (2024). Adults, wealth split equally between partners.'},
+    IN:{year:'2024',groups:[['g50','Poorest 50%',50,6.4],['g40','Middle 40%',40,28.6],['g9','Next 9%',9,24.9],['g1','Richest 1%',1,40.1]],
+        note:'World Inequality Report 2026, India country sheet (2024). Built from surveys, tax data and billionaire lists (Bharti, Chancel, Piketty & Somanchi 2024).'},
+    CN:{year:'2024',groups:[['g50','Poorest 50%',50,6.3],['g40','Middle 40%',40,25.8],['g9','Next 9%',9,37.7],['g1','Richest 1%',1,30.2]],
+        note:'World Inequality Report 2026, China country sheet (2024). Built on Piketty, Yang & Zucman (2019).'},
+    FI:{year:'2024',groups:[['gna','Poorest 90%',90,44.5],['g9','Next 9%',9,37.5],['g1','Richest 1%',1,18.0]],
+        note:'World Inequality Database via Our World in Data (2024): top 10% 55.5%, top 1% 18.0%. WID publishes no country sheet for Finland, so the poorest 90% are not split here; switch to “Official” for the full breakdown.'}
+  },
+  off:{
+    US:{year:'2026 Q2',groups:[['g50','Poorest 50%',50,2.3],['g40','Middle 40%',40,28.8],['g9','Next 9%',9,36.4],['g1','Richest 1%',1,32.5]],
+        note:'Federal Reserve, Distributional Financial Accounts, 2026 Q2. Households. Total household net worth: $185.7 trillion. The richest 0.1% alone own 15.0%.'},
+    FI:{year:'2023',groups:[['g50','Poorest 50%',50,4.2],['g40','Middle 40%',40,44.0],['g9','Next 5% (91st–95th)',5,14.6],['g1','Richest 5%',5,37.2]],
+        note:'Statistics Finland, Households’ assets 2023, table 152a. Households. The official survey splits the top 10% into two halves, so the orange block here is the richest 5%, not 1%.'},
+    IN:null, CN:null
+  }
+};
+let state={c:'US',s:'wid',t:'t1'};
+
+function radio(el,opts,key,cb){
+  el.innerHTML='';
+  opts.forEach(([v,l])=>{const b=document.createElement('button');b.type='button';b.role='radio';b.textContent=l;b.dataset.v=v;
+    b.setAttribute('aria-checked',state[key]===v);b.onclick=()=>{state[key]=v;[...el.children].forEach(x=>x.setAttribute('aria-checked',x.dataset.v===v));cb();};el.appendChild(b);});
+}
+const fmt=x=>(x<0?'−':'')+Math.abs(x).toFixed(1)+'%';
+
+function drawPW(){
+  const d=DATA[state.s][state.c];
+  const box=document.getElementById('pwbox'),nd=document.getElementById('nodata');
+  const key=document.getElementById('key'),hl=document.getElementById('headline'),sn=document.getElementById('srcnote');
+  if(!d){box.hidden=true;key.innerHTML='';hl.textContent='';nd.hidden=false;
+    nd.textContent=NAMES[state.c]+' publishes no official series of wealth shares by group. Switch to “Comparable (WID)” to see the research estimate.';sn.textContent='';return;}
+  box.hidden=false;nd.hidden=true;
+  const pb=document.getElementById('popbar'),wb=document.getElementById('wbar'),sv=document.getElementById('links');
+  pb.innerHTML='';wb.innerHTML='';sv.innerHTML='';
+  let px=0,wx=0;
+  d.groups.forEach(([cls,label,p,w])=>{
+    const a=document.createElement('div');a.className=cls;a.style.flex='0 0 '+p+'%';a.textContent=p>=9?p+'%':'';a.title=label+': '+p+'% of people';pb.appendChild(a);
+    const ww=Math.max(w,0);const b=document.createElement('div');b.className=cls;b.style.flex='0 0 '+ww+'%';b.textContent=ww>=7?fmt(w):'';b.title=label+': '+fmt(w)+' of wealth';wb.appendChild(b);
+    const poly=document.createElementNS('http://www.w3.org/2000/svg','polygon');
+    poly.setAttribute('points',`${px*10},0 ${(px+p)*10},0 ${(wx+ww)*10},64 ${wx*10},64`);
+    poly.setAttribute('fill',getComputedStyle(document.documentElement).getPropertyValue('--'+(cls==='gna'?'gna':cls)).trim());
+    poly.setAttribute('opacity','.35');sv.appendChild(poly);
+    px+=p;wx+=ww;
+  });
+  key.innerHTML=d.groups.map(([cls,label,p,w])=>{
+    const r=w/p;const per=(w/p).toFixed(w/p<1?2:1);
+    return `<div style="border-color:var(--${cls})"><b>${fmt(w)}</b><span>${label} · ${p}% of people<br>${w<=0?'owe more than they own':'each holds '+per+'× an equal share'}</span></div>`}).join('');
+  const top=d.groups[d.groups.length-1], bot=d.groups[0];
+  const coins = top[2]===1 ? `Share 100 coins among 100 people: the richest person gets <strong>${Math.round(top[3])}</strong>` : `Share 100 coins among 100 people: the richest ${top[2]} people get <strong>${Math.round(top[3])}</strong> between them`;
+  const botTxt = bot[2]===50 ? `; the poorest 50 people share <strong>${bot[3].toFixed(1)}</strong>.` : `; the other ${bot[2]} people share <strong>${bot[3].toFixed(1)}</strong>.`;
+  hl.innerHTML=`<strong>${NAMES[state.c]}, ${d.year}.</strong> ${coins}${botTxt}`;
+  sn.textContent='Source: '+d.note;
+}
+
+function drawCmp(){
+  const el=document.getElementById('cmp');el.innerHTML='';
+  ['US','IN','CN','FI'].forEach(c=>{
+    const d=DATA.wid[c];const n=document.createElement('span');n.className='name';n.textContent=NAMES[c];el.appendChild(n);
+    const bar=document.createElement('div');bar.className='bar';
+    d.groups.forEach(([cls,label,p,w])=>{const s=document.createElement('div');s.className=cls;s.style.flex='0 0 '+w+'%';s.textContent=w>=6?fmt(w):'';s.title=label+': '+fmt(w);bar.appendChild(s);});
+    el.appendChild(bar);
+  });
+}
+
+const SERIES={"t1":{"CHN":[15.9,17.0,17.9,18.6,19.2,19.6,20.0,20.4,20.5,22.4,23.7,26.2,28.5,29.2,31.1,30.4,28.1,27.3,27.2,27.8,29.6,29.6,30.1,30.0,29.9,30.3,30.7,30.4,30.4,30.4],"FIN":[14.0,15.1,15.9,17.2,18.1,18.0,17.4,17.3,17.6,17.6,18.1,18.8,18.3,16.7,17.8,18.6,17.6,17.4,18.0,18.1,17.9,18.1,18.6,18.6,18.2,18.1,18.5,17.9,17.9,18.0],"IND":[17.2,17.4,17.9,18.5,19.4,20.7,22.6,25.4,25.1,26.8,27.3,29.9,34.0,31.4,28.7,31.8,33.3,30.8,31.1,30.4,33.2,32.6,33.6,37.4,36.5,35.2,39.0,40.1,40.1,40.1],"USA":[29.3,29.6,30.5,31.5,31.8,32.3,32.1,31.5,31.1,31.7,32.3,32.7,33.4,34.0,33.1,34.6,35.3,36.6,35.6,35.8,35.8,35.5,35.5,35.2,34.9,35.1,36.3,34.9,34.8,34.8]},"t10":{"CHN":[40.9,43.0,44.6,45.9,46.9,47.8,48.4,49.0,49.0,50.6,52.3,53.9,55.8,56.9,58.2,62.8,66.8,66.5,66.6,66.7,67.4,67.4,67.8,67.7,67.7,68.0,68.2,68.0,68.0,68.0],"FIN":[52.9,53.7,54.2,55.9,56.7,57.0,56.1,56.4,57.0,57.2,57.0,57.0,55.9,53.7,53.9,55.2,54.6,54.2,54.9,54.9,55.1,55.6,56.1,56.1,55.8,55.7,55.9,55.6,55.5,55.5],"IND":[51.8,51.9,52.3,52.7,53.3,54.1,55.3,57.1,56.9,57.9,58.2,59.7,62.1,63.1,61.7,63.4,64.2,62.8,63.0,62.6,64.2,63.8,64.3,63.4,62.9,62.1,64.4,65.0,65.0,65.0],"USA":[67.1,67.3,68.0,68.6,68.6,68.7,68.2,68.2,68.2,68.7,68.6,68.8,69.7,71.2,71.7,73.0,73.5,74.3,73.9,73.6,73.2,72.8,71.8,71.7,71.4,71.0,70.8,69.6,69.5,69.5]}};
+const LINES=[['USA','United States','--us'],['IND','India','--in'],['CHN','China','--cn'],['FIN','Finland','--fi']];
+function drawTrend(){
+  const sv=document.getElementById('trend'),S=SERIES[state.t];
+  const W=760,H=330,L=44,R=120,T=14,B=30;
+  const [lo,hi]=state.t==='t1'?[0,45]:[30,80];const step=state.t==='t1'?10:10;
+  const x=i=>L+i*(W-L-R)/29, y=v=>T+(hi-v)*(H-T-B)/(hi-lo);
+  let g='';
+  for(let v=lo;v<=hi;v+=step){g+=`<line class="gl" x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}"/><text x="${L-8}" y="${y(v)+4}" text-anchor="end">${v}%</text>`;}
+  [1995,2000,2005,2010,2015,2020,2024].forEach(yr=>{g+=`<text x="${x(yr-1995)}" y="${H-8}" text-anchor="middle">${yr}</text>`;});
+  // end labels with simple collision avoidance
+  const ends=LINES.map(([k,n,c])=>({k,n,c,v:S[k][29],yy:y(S[k][29])})).sort((a,b)=>a.yy-b.yy);
+  for(let i=1;i<ends.length;i++){if(ends[i].yy-ends[i-1].yy<16)ends[i].yy=ends[i-1].yy+16;}
+  LINES.forEach(([k,n,c])=>{g+=`<polyline class="ln" style="stroke:var(${c})" points="${S[k].map((v,i)=>x(i)+','+y(v)).join(' ')}"/>`;});
+  ends.forEach(e=>{g+=`<text class="end" x="${W-R+8}" y="${e.yy+4}" style="fill:var(${e.c})">${e.n} ${e.v.toFixed(0)}%</text>`;});
+  g+=`<line id="cur" x1="0" x2="0" y1="${T}" y2="${H-B}" stroke="var(--ink-3)" stroke-dasharray="3 3" visibility="hidden"/>`;
+  g+=`<rect x="${L}" y="${T}" width="${W-L-R}" height="${H-T-B}" fill="transparent" id="hit"/>`;
+  sv.innerHTML=g;
+  const hit=document.getElementById('hit'),cur=document.getElementById('cur'),tip=document.getElementById('tip');
+  const move=ev=>{const r=sv.getBoundingClientRect();const p=ev.touches?ev.touches[0]:ev;const sx=(p.clientX-r.left)*W/r.width;
+    const i=Math.max(0,Math.min(29,Math.round((sx-L)/((W-L-R)/29))));cur.setAttribute('x1',x(i));cur.setAttribute('x2',x(i));cur.setAttribute('visibility','visible');
+    tip.textContent=(1995+i)+' · '+(state.t==='t1'?'richest 1%':'richest 10%')+' own: '+LINES.map(([k,n])=>n+' '+S[k][i].toFixed(1)+'%').join(' · ');};
+  hit.addEventListener('mousemove',move);hit.addEventListener('touchstart',move,{passive:true});hit.addEventListener('touchmove',move,{passive:true});
+}
+
+radio(document.getElementById('country'),[['US','United States'],['IN','India'],['CN','China'],['FI','Finland']],'c',drawPW);
+radio(document.getElementById('source'),[['wid','Comparable (WID)'],['off','Official statistics']],'s',drawPW);
+radio(document.getElementById('tgroup'),[['t1','Richest 1%'],['t10','Richest 10%']],'t',drawTrend);
+drawPW();drawCmp();drawTrend();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',drawPW);
+</script>
+</body>
+</html>
